@@ -47,10 +47,11 @@ class RobinPlayer160719011 extends GomokuPlayer {
 			MoveScore returnedMove;
 			MoveScore bestMove = null;	
 			for (MoveScore currentMove : moves) {
-				board[currentMove.row][currentMove.col] = me; //create the subnode board
+				board[currentMove.move.row][currentMove.move.col] = me; //create the subnode board
 				//below wont work right now, need call alphaBeta on returnedMove, compare .score on both
 				//then assign the best to bestmove? 
-				returnedMove = Math.max(currentMove.score, alphaBeta(board, me, depth-1, alpha, beta, false));
+				returnedMove = alphaBeta(board, me, depth-1, alpha, beta, false);
+				bestMove = (returnedMove.score > currentMove.score) ? returnedMove : currentMove;
 				//should below be doing a different comparison? 
 				alpha = Math.max(alpha.score, returnedMove.score);//set alpha 
 				board[currentMove.move.row][currentMove.move.col] = null;//reset the board
