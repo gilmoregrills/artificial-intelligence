@@ -29,7 +29,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 	}//prepareMoves
 
 	
-	public int alphaBeta(Color[][] board, Color me, int depth, int alpha, int beta, boolean max) {
+	public int[] alphaBeta(Color[][] board, Color me, int depth, int alpha, int beta, boolean max) {
 		ArrayList<Move> moves = prepareMoves(board);//calls prepareMoves to get legal moves
 		if (depth == 0 || board == terminal) {
 			//return the score for the terminal state! basically tells the function to stop
