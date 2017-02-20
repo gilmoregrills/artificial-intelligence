@@ -27,17 +27,18 @@ class RobinPlayer160719011 extends GomokuPlayer {
 	
 	public Move alphaBeta(Color[][] board, Color me, int depth, int alpha, int beta, boolean max) {
 		ArrayList<Move> moves = prepareMoves(board);
-		if depth = 0 || board == terminal??) {
+		if depth = 0 || board == terminal??) { //how do I implement the board-is-terminal flag??
 			//return the score for the terminal state! basically stop the search and return
 			//every move up the call stack!!!
 			//this is either at the win-state or at the final user-defined layer if depth-bounded
 		}
 		if (max) {
-			score = 0;
+			score = 0; //score returned by the eval function on the bottom layer
 			for (legalMove in moves) {
-				//apply move to newBoard
+				//apply move to newBoard or board
 				score = Math.max(score, alphaBeta(newBoard, me, depth-1, alpha, beta, false));
 				alpha = Math.max(alpha, score);
+				//if using board undo the move from it (might be more efficient)
 				if (beta <= alpha) {
 					//break/cut off in some way
 				}
