@@ -12,6 +12,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 	}//chooseMove()
 
 	public ArrayList prepareMoves(Color[][] board) {
+		//this function might be redundant if I instead just put these loops in the alphabeta function
 		ArrayList<Move> moves = new ArrayList<Move>(); //needs to be arraylist!!
 		for (int col = 0; col < 8; col++) {
 			for (int row = 0; row < 8; row++) {
