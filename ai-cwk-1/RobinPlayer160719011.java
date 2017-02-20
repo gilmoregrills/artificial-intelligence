@@ -47,9 +47,10 @@ class RobinPlayer160719011 extends GomokuPlayer {
 		else {
 			score = 0;
 			for (legalMove in moves) {
-				//apply move to newBoard
+				//apply move to newBoard or board
 				score = Math.max(score, alphaBeta(newBoard, depth-1, alpha, beta, true));
 				beta = Math.min(beta, score);
+				//undo the move from board if using it
 				if (beta <= alpha) {
 					//break or cut off in some way
 				}
