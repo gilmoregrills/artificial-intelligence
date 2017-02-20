@@ -19,10 +19,10 @@ class RobinPlayer160719011 extends GomokuPlayer {
 	//second arg is color I am playing
 		MoveScore myMove;
 		//so if I'm black (black goes first) I am max, if not I am min
-		if (me == Color.black) {
-			myMove = alphaBeta(board, me, 5, -100, 100, true);
+		if (me == Color.white) {
+			myMove = alphaBeta(board, me, 5, -200, 200, true);
 		} else {
-			myMove = alphaBeta(board, me, 5, -100, 100, false);
+			myMove = alphaBeta(board, me, 5, -200, 200, false);
 		}
 		return myMove.move;
 	}//chooseMove()
@@ -43,20 +43,24 @@ class RobinPlayer160719011 extends GomokuPlayer {
 	public MoveScore alphaBeta(Color[][] board, Color me, int depth, int alpha, int beta, boolean max) {
 		ArrayList<MoveScore> moves = prepareMoves(board);//calls prepareMoves to get legal moves
 		if (depth == 0) {//also needs to be if the board has hit a win condition!!!
+			MoveScore terminalState = new MoveScore(null, 0);
+			terminalState.score = eval(board, me, max);
+			return terminalState;
+
 			//return the score for the terminal state! basically tells the function to stop
 			//the search and return each move up the call stack
 			//this is either at the win-state or at the final user-defined layer if depth-bounded
 		}
 		if (max) {
 			MoveScore returnedMove;
-			MoveScore bestMove = null;	
+			MoveScore bestMove = null;
 			for (MoveScore currentMove : moves) {
 				board[currentMove.move.row][currentMove.move.col] = me; //create the subnode board
 				//call alphaBeta on subnode board, store score + move in returnedMove
 				returnedMove = alphaBeta(board, me, depth-1, alpha, beta, false);
 				board[currentMove.move.row][currentMove.move.col] = null;//reset the board
 				//if returnedMove comes w/ higher score - reduce to ternary op??
-				if (returnedMove.score > bestMove.score) {
+				if (returnedMove.score > bestMove.score || bestMove == null) {
 					bestMove.score = returnedMove.score;
 					bestMove.move = returnedMove.move;
 				}
@@ -82,7 +86,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 				returnedMove = alphaBeta(board, me, depth-1, alpha, beta, true);
 				board[currentMove.move.row][currentMove.move.col] = null;//undo the move
 				//if returnedMove comes w/ lower score - reduce to ternary op??
-				if (returnedMove.score < bestMove.score) {
+				if (returnedMove.score < bestMove.score || bestMove == null) {
 					bestMove.score = returnedMove.score;
 					bestMove.move = returnedMove.move;
 				}
@@ -102,7 +106,10 @@ class RobinPlayer160719011 extends GomokuPlayer {
 	}//alphaBeta()	
 			
 
-	public int[][] eval(Color[][] board, Color me) {
+	public int eval(Color[][] board, Color me, boolean max) {
+		Random random = new Random();
+		int randomReturn = (random.nextInt(100)-100);
+		return randomReturn;
 
 	//I THINK THIS EVAL FUNCTION IS COMPLETELY WRONG. I'M NOT EVALUATING THE UTILITY OF THE MOVE
 	//I'M INSTEAD EVALUATING THE UTILITY OF THE WHOLE BOARD??
