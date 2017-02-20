@@ -67,11 +67,11 @@ class RobinPlayer160719011 extends GomokuPlayer {
 				}
 				//if returnedMove has higher score than alpha - reduce to ternary op?
 				if (bestMove.score >= alpha) {
-					alpha = returnedMove.score;
+					alpha = bestMove.score;
 				}
 				//pruning - still not sure about this breakoff
 				if (beta <= alpha) {
-					bestMove.score = beta;
+					bestMove.score = alpha;
 					bestMove.move = null;
 					return bestMove;
 				}
@@ -94,13 +94,12 @@ class RobinPlayer160719011 extends GomokuPlayer {
 				}
 				//if returnedMove has lower score than beta - reduce to ternary op
 				if (bestMove.score <= beta) {
-					beta = returnedMove.score;
+					beta = bestMove.score;
 				}
 				//pruning - still not sure about this breakoff
 				if (beta <= alpha) {
-					bestMove.score = alpha;
+					bestMove.score = beta;
 					bestMove.move = null; 
-					return bestMove;
 				}
 			}
 			return bestMove; //or some variant???
