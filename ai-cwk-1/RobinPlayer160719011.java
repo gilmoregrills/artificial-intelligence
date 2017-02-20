@@ -4,24 +4,31 @@ import java.util.ArrayList;
 
 class RobinPlayer160719011 extends GomokuPlayer {
 
+	private class MoveScore {
+		private MoveScore(Move move, int score) {
+			move = move;
+			score = score;
+		}
+	}
+
 	public Move chooseMove(Color[][] board, Color me) {
 	//first arg is boardstate
 	//second arg is color I am playing
 		//so if I'm black (black goes first) I am max, if not I am min
 		if (me == Color.black) {
-			alphaBeta(board, me, 5, -100, 100, true);
+			myMove = alphaBeta(board, me, 5, -100, 100, true);
 		} else {
-			alphaBeta(board, me, 5, -100, 100, false);
+			myMove = alphaBeta(board, me, 5, -100, 100, false);
 		}
-		//return move??
+		return myMove.move;
 	}//chooseMove()
 
-	public ArrayList<Move> prepareMoves(Color[][] board) {
-		ArrayList<Move> moves = new ArrayList<Move>(); //needs to be arraylist!!
+	public ArrayList<MoveScore> prepareMoves(Color[][] board) {
+		ArrayList<MoveScore> moves = new ArrayList<MoveScore>(); //needs to be arraylist!!
 		for (int col = 0; col < 8; col++) {
 			for (int row = 0; row < 8; row++) {
 				if (board[row][col] == null) {
-					moves.add(new Move(row, col));
+					moves.add(new MoveScore(new Move(row, col), 0);	
 				}
 			}
 		}
@@ -29,25 +36,30 @@ class RobinPlayer160719011 extends GomokuPlayer {
 	}//prepareMoves
 
 	
-	public int alphaBeta(Color[][] board, Color me, int depth, int alpha, int beta, boolean max) {
-		ArrayList<Move> moves = prepareMoves(board);//calls prepareMoves to get legal moves
+	public MoveScore alphaBeta(Color[][] board, Color me, int depth, int alpha, int beta, boolean max) {
+		ArrayList<MoveScore> moves = prepareMoves(board);//calls prepareMoves to get legal moves
 		if (depth == 0 || board == terminal) {
 			//return the score for the terminal state! basically tells the function to stop
 			//the search and return each move up the call stack
 			//this is either at the win-state or at the final user-defined layer if depth-bounded
 		}
 		if (max) {
-			int score = -100;
-			for (Move move : moves) {
-				board[move.row][move.col] = me; //create the subnode board
-				score = Math.max(score, alphaBeta(board, me, depth-1, alpha, beta, false));
-				alpha = Math.max(alpha, score);
-				board[move.row][move.col] = null;
-				if (beta <= alpha) {
-					return beta;//or the other way around?
+			MoveScore returnedMove;
+			MoveScore bestMove = null;	
+			for (MoveScore currentMove : moves) {
+				board[currentMove.row][currentMove.col] = me; //create the subnode board
+				//below wont work right now, need call alphaBeta on returnedMove, compare .score on both
+				//then assign the best to bestmove? 
+				returnedMove = Math.max(currentMove.score, alphaBeta(board, me, depth-1, alpha, beta, false));
+				//should below be doing a different comparison? 
+				alpha = Math.max(alpha.score, returnedMove.score);//set alpha 
+				board[currentMove.move.row][currentMove.move.col] = null;//reset the board
+				if (beta <= alpha) {//so this part is my pruning bit
+					bestMove = alpha;
+					return bestMove;
 				}
 			}
-			return score; //or some variant???	
+			return bestMove;
 		}
 		else {
 			int score = 100;
