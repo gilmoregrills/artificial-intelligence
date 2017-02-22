@@ -25,9 +25,9 @@ class RobinPlayer160719011 extends GomokuPlayer {
 		MoveScore myMove;
 		//so if I'm white (white goes first) I am max, if not I am min
 		if (me == Color.white) {
-			myMove = alphaBeta(board, me, 5, -200, 200, true);
+			myMove = alphaBeta(board, me, 3, -200, 200, true);
 		} else {
-			myMove = alphaBeta(board, me, 5, -200, 200, false);
+			myMove = alphaBeta(board, me, 3, -200, 200, false);
 		}
 		return myMove.move;
 	}//chooseMove()
@@ -68,13 +68,13 @@ class RobinPlayer160719011 extends GomokuPlayer {
 					bestMove.move = currentMove.move;
 				}
 				//if returnedMove has higher score than alpha - reduce to ternary op?
-				if (returnedMove.score >= alpha) {
-					alpha = returnedMove.score;
+				if (bestMove.score >= alpha) {
+					alpha = bestMove.score;
 				}
 				//pruning - still not sure about this breakoff
 				if (beta <= alpha) {
 					bestMove.score = beta;
-					bestMove.move = null;
+					//bestMove.move = null;
 					return bestMove;
 				}
 			}
@@ -83,7 +83,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 		else {
 			ArrayList<MoveScore> moves = prepareMoves(board);
 			MoveScore returnedMove;
-			MoveScore bestMove = new MoveScore(new Move(0, 0), 200);
+			MoveScore bestMove = new MoveScore(new Move(4, 4), 200);
 			for (MoveScore currentMove : moves) {
 				board[currentMove.move.row][currentMove.move.col] = me;//create the subnode board
 				//call alphabeta on subnode, storing data in returnedMove
@@ -95,13 +95,13 @@ class RobinPlayer160719011 extends GomokuPlayer {
 					bestMove.move = currentMove.move;
 				}
 				//if returnedMove has lower score than beta - reduce to ternary op
-				if (returnedMove.score <= beta) {
-					beta = returnedMove.score;
+				if (bestMove.score <= beta) {
+					beta = bestMove.score;
 				}
 				//pruning - still not sure about this breakoff
 				if (beta <= alpha) {
 					bestMove.score = alpha;
-					bestMove.move = null; 
+					//bestMove.move = null; 
 					return bestMove;
 				}
 			}
@@ -110,50 +110,121 @@ class RobinPlayer160719011 extends GomokuPlayer {
 	}//alphaBeta()	
 			
 
-	public int eval(Color[][] board, Color me, boolean max) {
-		/*
-		//placeholder function, assigns random score +50 to -50		
-		Random random = new Random();
-		int randomReturn = (random.nextInt(100)-100);
-		return randomReturn;
-		*/
-		
-		
+	public int eval(Color[][] board, Color me, boolean max) {		
 		//22:02 bugfixing - for loops are functional
-	        // to start with I'm going to check each occupied square for patterns up, down, upright, downright, and right from it		
+	        // to start with I'm going to check each occupied square for patterns up, down, upright, downright, and right from it
 		int totalScore = 0;
 		int squareCounter = 0;
 		for (int i = 0; i < 8; i++) {//rows
 			for (int j = 0; j < 8; j++) {//cols
-				/*
-				int row;
-				int col;
-				int patternCounter = 0;
+				System.out.println("checking square: "+i+","+j+" it is: "+board[i][j]);	
 				if (board[i][j] == Color.white) {
-					row = i;
-					col = j;
-					do {
-						col++;
-						patternCounter += 10;
-					} while (board[row][col] == Color.white);
-					totalScore += patternCounter;
+					System.out.println("square is white");
+					totalScore += search(board, Color.white, i, j);
 				} else if (board[i][j] == Color.black) {
-					row = i;
-					col = j;
-					do {
-						col++;
-						patternCounter += 10;
-					}while (board[row][col] == Color.black);
-					totalScore += patternCounter;
+					System.out.println("square is black!");
+					totalScore -= search(board, Color.black, i, j);
+				} else if (board[i][j] == null) {
+					System.out.println("square is null");
+				}
+		
+				/*This is my debug code, essentially it's random, 
+				 * but it tests pruning etc too.
+				 *
+				Random random = new Random();
+				int randomScore = (random.nextInt(10) - 10);
+				if (board[i][j] == Color.black) {
+					totalScore = randomScore;
+				} else if (board[i][j] == Color.white) {
+					totalScore = randomScore;
 				}
 				*/
-				if (board[4][4] == Color.black) {
-					totalScore = 40;
-				} else if (board[5][5] == Color.black) {
-					totalScore = 40;
-				}
 			}
 		}
+		System.out.println("Total score for this board is: "+totalScore);
 		return totalScore;
 	}//eval()
+	public int search(Color[][] board, Color me, int row, int col) {
+		//this code block will search in each of these 5 directions
+		//add +1 to the counter as it searches, then multiply counter
+		//by itself to make sure that longer patterns are considered much better
+		//HOWEVER it current indexOutOfBounds instantly. 
+			int pattern = 0;
+			int counter = 0;
+			int tmpRow = row;
+			int tmpCol = col;
+			for (int i = 0; i < 5; i = pattern) {
+				System.out.println("this is loop: "+i+" we're searching: "+tmpRow+","+tmpCol+" for pattern: "+pattern+" counter: "+counter);
+
+				if (board[tmpRow][tmpCol] == me) {
+					counter++;
+					System.out.println("color found: "+board[tmpRow][tmpCol]);
+				} else {
+					pattern++;
+					System.out.println("color found: "+board[tmpRow][tmpCol]);
+				}
+				switch(pattern) {
+					case 0:
+						if (tmpRow > 0) {
+							tmpRow--;
+							System.out.println("we can search upwards! tmpRow is now: "+tmpRow);
+						} else {
+							pattern++;
+							System.out.println("no searching upwards, now we check pattern "+pattern);
+							tmpRow = row;
+						}
+						break;
+					case 1:
+						if (tmpRow > 0 && tmpCol < 7) {
+							tmpRow--;
+							tmpCol++;
+							System.out.println("we can search up/right! tmpRow is now: "+tmpRow+" tmpCol is now"+tmpCol);
+						} else {
+							pattern++;
+							tmpRow = row;
+							tmpCol = col;
+							System.out.println("no searching up/right, now we check pattern "+pattern);
+						}
+						break;
+					case 2:
+						if (tmpCol < 7) {
+							tmpCol++;
+							System.out.println("we can search right! tmpCol is now: "+tmpCol);
+						} else {
+							pattern++;
+							tmpCol = col;
+							System.out.println("no searching right, now we check pattern"+pattern);
+						}
+						break;
+					case 3:
+						if (tmpRow < 7 && tmpCol < 7) {
+							tmpCol++;
+							tmpRow++;
+							System.out.println("we can search down/right! tmpRow is :"+tmpRow+" tmpCol is :"+tmpCol);
+						} else {
+							pattern++;
+							tmpCol = col;
+							tmpRow = row;
+							System.out.println("no searching down/right, now we check pattern "+pattern);
+						}
+						break;
+					case 4:
+						if (tmpRow < 7) {
+							tmpRow++;
+							System.out.println("we can search down! tmpRow is: "+tmpRow+" tmpCol is: "+tmpCol);
+						} else {
+							pattern++;
+							tmpRow = row;
+							System.out.println("no searching down, and this was the last pattern");
+						}
+						break;
+					default:
+						return counter*counter;
+				}
+				
+				
+			}
+		System.out.println("we've made it to the return of search()");		
+		return counter * counter;
+	}//search()
 }//class RobinPlayer160719011
