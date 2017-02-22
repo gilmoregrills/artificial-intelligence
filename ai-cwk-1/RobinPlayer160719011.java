@@ -54,6 +54,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 			//return the score for the terminal state! Either at win state or once depth has hit 0
 		}
 		else if (max == true) {
+			System.out.println("it's max's turn");
 			ArrayList<MoveScore> moves = prepareMoves(board);
 			MoveScore returnedMove;
 			MoveScore bestMove = new MoveScore(new Move(4, 4), -200);
@@ -81,6 +82,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 			return bestMove;
 		}
 		else {
+			System.out.println("It's min's turn!");
 			ArrayList<MoveScore> moves = prepareMoves(board);
 			MoveScore returnedMove;
 			MoveScore bestMove = new MoveScore(new Move(4, 4), 200);
@@ -117,12 +119,11 @@ class RobinPlayer160719011 extends GomokuPlayer {
 		int squareCounter = 0;
 		for (int i = 0; i < 8; i++) {//rows
 			for (int j = 0; j < 8; j++) {//cols
-				System.out.println("checking square: "+i+","+j+" it is: "+board[i][j]);	
 				if (board[i][j] == Color.white) {
-					System.out.println("square is white");
+					System.out.println("square: "+i+","+j+"  is white");
 					totalScore += search(board, Color.white, i, j);
 				} else if (board[i][j] == Color.black) {
-					System.out.println("square is black!");
+					System.out.println("square: "+i+","+j+" is black!");
 					totalScore -= search(board, Color.black, i, j);
 				} else if (board[i][j] == null) {
 					System.out.println("square is null");
@@ -145,10 +146,8 @@ class RobinPlayer160719011 extends GomokuPlayer {
 		return totalScore;
 	}//eval()
 	public int search(Color[][] board, Color me, int row, int col) {
-		//this code block will search in each of these 5 directions
-		//add +1 to the counter as it searches, then multiply counter
-		//by itself to make sure that longer patterns are considered much better
-		//HOWEVER it current indexOutOfBounds instantly. 
+		 
+			int total = 0;
 			int pattern = 0;
 			int counter = 0;
 			int tmpRow = row;
@@ -161,7 +160,11 @@ class RobinPlayer160719011 extends GomokuPlayer {
 					System.out.println("color found: "+board[tmpRow][tmpCol]);
 				} else {
 					pattern++;
+					total += counter * counter;
+					counter = 0;	
 					System.out.println("color found: "+board[tmpRow][tmpCol]);
+					tmpRow = row;
+					tmpCol = col;
 				}
 				switch(pattern) {
 					case 0:
@@ -170,6 +173,8 @@ class RobinPlayer160719011 extends GomokuPlayer {
 							System.out.println("we can search upwards! tmpRow is now: "+tmpRow);
 						} else {
 							pattern++;
+							total += counter * counter;
+							counter = 0;	
 							System.out.println("no searching upwards, now we check pattern "+pattern);
 							tmpRow = row;
 						}
@@ -181,6 +186,8 @@ class RobinPlayer160719011 extends GomokuPlayer {
 							System.out.println("we can search up/right! tmpRow is now: "+tmpRow+" tmpCol is now"+tmpCol);
 						} else {
 							pattern++;
+							total += counter * counter;
+							counter = 0;	
 							tmpRow = row;
 							tmpCol = col;
 							System.out.println("no searching up/right, now we check pattern "+pattern);
@@ -192,6 +199,8 @@ class RobinPlayer160719011 extends GomokuPlayer {
 							System.out.println("we can search right! tmpCol is now: "+tmpCol);
 						} else {
 							pattern++;
+							total += counter * counter;
+							counter = 0;	
 							tmpCol = col;
 							System.out.println("no searching right, now we check pattern"+pattern);
 						}
@@ -203,6 +212,8 @@ class RobinPlayer160719011 extends GomokuPlayer {
 							System.out.println("we can search down/right! tmpRow is :"+tmpRow+" tmpCol is :"+tmpCol);
 						} else {
 							pattern++;
+							total += counter * counter;
+							counter = 0;	
 							tmpCol = col;
 							tmpRow = row;
 							System.out.println("no searching down/right, now we check pattern "+pattern);
@@ -214,17 +225,19 @@ class RobinPlayer160719011 extends GomokuPlayer {
 							System.out.println("we can search down! tmpRow is: "+tmpRow+" tmpCol is: "+tmpCol);
 						} else {
 							pattern++;
+							total += counter * counter;
+							counter = 0;	
 							tmpRow = row;
 							System.out.println("no searching down, and this was the last pattern");
 						}
 						break;
 					default:
-						return counter*counter;
+						return total;
 				}
 				
 				
 			}
 		System.out.println("we've made it to the return of search()");		
-		return counter * counter;
+		return total;
 	}//search()
 }//class RobinPlayer160719011
