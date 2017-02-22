@@ -43,7 +43,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 	public MoveScore alphaBeta(Color[][] board, Color me, int depth, int alpha, int beta, boolean max) {
 		if (depth <= 0) {//also needs to be if the board has hit a win condition!!!
 			MoveScore terminalState = new MoveScore(new Move(4, 4), 0); 
-			terminalState.score = eval(board, max);
+			terminalState.score = eval(board, max, me);
 			return terminalState;
 
 			//return the score for the terminal state! Either at win state or once depth has hit 0
@@ -109,7 +109,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 	}//alphaBeta()	
 			
 
-	public int eval(Color[][] board, boolean max) {		
+	public int eval(Color[][] board, boolean max, Color me) {		
 		
 		int boardScore = 0;
 		int squareScore = 0;
@@ -118,14 +118,19 @@ class RobinPlayer160719011 extends GomokuPlayer {
 				if (board[i][j] == Color.white) {
 					System.out.println("square: "+i+","+j+"  is white");
 					squareScore = scorePatterns(getPatterns(board, Color.white, i, j));
+					boardScore += (Color.white == me) ? squareScore : squareScore*2;
 				} else if (board[i][j] == Color.black) {
 					System.out.println("square: "+i+","+j+" is black!");
 					squareScore = scorePatterns(getPatterns(board, Color.black, i, j));
+					boardScore -= (Color.black == me) ? squareScore : squareScore*2;
 				} else {
-					System.out.println("square is null");
+					
 				}
-				boardScore += squareScore;
-		
+				//Whatever player *I* am, I want to give a multiplier to the opponent's
+				//patterns, so that preventing them from developing patterns is > making
+				//my own
+
+
 				/*This is debug code, essentially it's random, 
 				 * but it tests pruning etc too.
 				 *
@@ -144,6 +149,9 @@ class RobinPlayer160719011 extends GomokuPlayer {
 	}//eval()
 	public int scorePatterns(ArrayList<Integer> patterns) {
 		int score = 0;
+			for (Integer pattern : patterns) {
+				score += (pattern + (pattern*3));
+			}
 		return score;
 	}
 	public ArrayList<Integer> getPatterns(Color[][] board, Color me, int row, int col) {
@@ -154,7 +162,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 			int tmpRow = row;
 			int tmpCol = col;
 			for (int i = 1; i < 6; i++) {
-				System.out.println("This loop we're searching pattern: "+i);
+				System.out.println("counter is: "+counter);
 				pattern = i;
 				counter = 1; //could be 0
 				tmpRow = row;
@@ -162,63 +170,67 @@ class RobinPlayer160719011 extends GomokuPlayer {
 
 				switch(pattern) {
 					case 1:		
+						System.out.println("Searching upwards");
 						for (int j = 1; j < 6; j++) {
 							if (tmpRow > 0 && board[tmpRow-1][tmpCol] == me) {
 								tmpRow--;
-								System.out.println("Searching upwards");
 								counter++;
 							} else {
 								patterns.add(counter);
 								break;
 							}
 						}
-						//might need a "break" at every stage here
+						break;
 					case 2:
+						System.out.println("Searching up/right");
 						for (int k = 1; k < 6; k++) {
 							if (tmpRow > 0 && tmpCol < 7 && board[tmpRow-1][tmpCol+1] == me) {
 								tmpRow--;
 								tmpCol++;
-								System.out.println("Searching up/right");
 								counter++;
 							} else { 
 								patterns.add(counter);
 								break;
 							}
 						}
+						break;
 					case 3:
+						System.out.println("Searching right");
 						for (int l = 1; l < 6; l++) {
 							if (tmpCol < 7 && board[tmpRow][tmpCol+1] == me) {
 								tmpCol++;
-								System.out.println("Searching right");
 								counter++;
 							} else {
 								patterns.add(counter);
 								break;
 							}
 						}
+						break;
 					case 4:
+						System.out.println("Searching down/right");
 						for (int m = 1; m < 6; m++) {
 							if (tmpCol < 7 && tmpRow < 7 && board[tmpRow+1][tmpCol+1] == me) {
 								tmpCol++;
 								tmpRow++;
-								System.out.println("Searching down/right");
 								counter++;
 							} else {
 								patterns.add(counter);
 								break;
 							}
 						}
+						break;
 					case 5:
+						System.out.println("Searching dooooown");
 						for (int n = 1; n < 6; n++) {
 							if (tmpRow < 7 && board[tmpRow+1][tmpCol] == me) {
-								tmpRow++;
-								System.out.println("Searching dooooown");
+								tmpRow++;	
 								counter++;
 							} else {
 								patterns.add(counter);
 								break;
 							}
 						}
+						break;
 					default:
 						break;
 				}
