@@ -1,8 +1,3 @@
-//NOTE FROM PAST ROBIN:
-//IT'S CURRENTLY PLAYING IN FUNCTION BECAUSE THE FIRST POSSIBLE CHILD STATE(IE, PREVIOUS MOVE +1)
-//IS ALWAYS COMING BACK AS HAVING A RAD SCORE
-//MIGHT BE A PROBLEM WITH MY BESTSTATE +/- 200 STUFF, MAKE NULL?
-
 import java.awt.Color;
 import java.util.*;
 import java.util.ArrayList;
@@ -71,6 +66,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 				//if returnedMove has higher score than alpha - reduce to ternary op?
 				if (bestMove.score >= alpha) {
 					alpha = bestMove.score;
+					//assign bestMove returnedmove??
 				}
 				//pruning - still not sure about this breakoff
 				if (beta <= alpha) {
@@ -99,6 +95,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 				//if returnedMove has lower score than beta - reduce to ternary op
 				if (bestMove.score <= beta) {
 					beta = bestMove.score;
+					//assign bestMove returnedMove? 
 				}
 				//pruning - still not sure about this breakoff
 				if (beta <= alpha) {
