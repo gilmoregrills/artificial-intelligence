@@ -20,9 +20,9 @@ class RobinPlayer160719011 extends GomokuPlayer {
 		MoveScore myMove;
 		//so if I'm white (white goes first) I am max, if not I am min
 		if (me == Color.white) {
-			myMove = alphaBeta(board, me, 3, -200, 200, true);
+			myMove = alphaBeta(board, me, 3, -2000, 2000, true);
 		} else {
-			myMove = alphaBeta(board, me, 3, -200, 200, false);
+			myMove = alphaBeta(board, me, 3, -2000, 2000, false);
 		}
 		return myMove.move;
 	}//chooseMove()
@@ -52,7 +52,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 			System.out.println("it's max's turn");
 			ArrayList<MoveScore> moves = prepareMoves(board);
 			MoveScore returnedMove;
-			MoveScore bestMove = new MoveScore(new Move(4, 4), -200);
+			MoveScore bestMove = new MoveScore(new Move(4, 4), -2000);
 			for (MoveScore currentMove : moves) {
 				board[currentMove.move.row][currentMove.move.col] = me; //create the subnode board
 				//call alphaBeta on subnode board, store score + move in returnedMove
@@ -81,7 +81,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 			System.out.println("It's min's turn!");
 			ArrayList<MoveScore> moves = prepareMoves(board);
 			MoveScore returnedMove;
-			MoveScore bestMove = new MoveScore(new Move(4, 4), 200);
+			MoveScore bestMove = new MoveScore(new Move(4, 4), 2000);
 			for (MoveScore currentMove : moves) {
 				board[currentMove.move.row][currentMove.move.col] = me;//create the subnode board
 				//call alphabeta on subnode, storing data in returnedMove
@@ -150,7 +150,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 	public int scorePatterns(ArrayList<Integer> patterns) {
 		int score = 0;
 			for (Integer pattern : patterns) {
-				score += (pattern + (pattern*3));
+				score += (pattern * pattern);
 			}
 		return score;
 	}
@@ -164,7 +164,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 			for (int i = 1; i < 6; i++) {
 				System.out.println("counter is: "+counter);
 				pattern = i;
-				counter = 1; //could be 0
+				counter = 0; //could be 0
 				tmpRow = row;
 				tmpCol = col;
 
