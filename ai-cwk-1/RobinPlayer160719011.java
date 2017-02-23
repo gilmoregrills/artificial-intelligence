@@ -52,14 +52,14 @@ class RobinPlayer160719011 extends GomokuPlayer {
 			System.out.println("it's max's turn");
 			ArrayList<MoveScore> moves = prepareMoves(board);
 			MoveScore returnedMove;
-			MoveScore bestMove = null;
+			MoveScore bestMove = new MoveScore(new Move(4, 4), -2000);
 			for (MoveScore currentMove : moves) {
 				board[currentMove.move.row][currentMove.move.col] = me; //create the subnode board
 				//call alphaBeta on subnode board, store score + move in returnedMove
 				returnedMove = alphaBeta(board, me, depth-1, alpha, beta, false);
 				board[currentMove.move.row][currentMove.move.col] = null;//reset the board
-				//if returnedMove comes w/ higher score - reduce to ternary op??
-				if (returnedMove.score > bestMove.score || bestMove == null) {
+			
+				if (returnedMove.score > bestMove.score || bestMove == null) {//possibly should just be bestMove = null
 					bestMove.score = returnedMove.score;
 					bestMove.move = currentMove.move;
 				}
@@ -81,7 +81,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 			System.out.println("It's min's turn!");
 			ArrayList<MoveScore> moves = prepareMoves(board);
 			MoveScore returnedMove;
-			MoveScore bestMove = null;
+			MoveScore bestMove = new MoveScore(new Move(4, 4), 2000);
 			for (MoveScore currentMove : moves) {
 				board[currentMove.move.row][currentMove.move.col] = me;//create the subnode board
 				//call alphabeta on subnode, storing data in returnedMove
