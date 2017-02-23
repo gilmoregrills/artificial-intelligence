@@ -20,15 +20,15 @@ class RobinPlayer160719011 extends GomokuPlayer {
 		MoveScore myMove;
 		//so if I'm white (white goes first) I am max, if not I am min
 		if (me == Color.white) {
-			myMove = alphaBeta(board, me, 4, -2000, 2000, true);
+			myMove = alphaBeta(board, me, 6, -2000, 2000, true);
 		} else {
-			myMove = alphaBeta(board, me, 4, -2000, 2000, false);
+			myMove = alphaBeta(board, me, 6, -2000, 2000, false);
 		}
 		return myMove.move;
 	}//chooseMove()
 
 	public ArrayList<MoveScore> prepareMoves(Color[][] board) {
-		ArrayList<MoveScore> moves = new ArrayList<MoveScore>(); //needs to be arraylist!!
+		ArrayList<MoveScore> moves = new ArrayList<MoveScore>();
 		for (int row = 0; row < 8; row++) {
 			for (int col = 0; col < 8; col++) {
 				if (board[row][col] == null) {
@@ -48,13 +48,13 @@ class RobinPlayer160719011 extends GomokuPlayer {
 
 			//return the score for the terminal state! Either at win state or once depth has hit 0
 		}
-		else if (max == true) {
+		ArrayList<MoveScore> moves = prepareMoves(board);
+		if (max == true) {
 			System.out.println("it's max's turn");
-			ArrayList<MoveScore> moves = prepareMoves(board);
 			MoveScore returnedMove;
 			MoveScore bestMove = new MoveScore(new Move(4, 4), -2000);
 			for (MoveScore currentMove : moves) {
-				board[currentMove.move.row][currentMove.move.col] = me; //create the subnode board
+				board[currentMove.move.row][currentMove.move.col] = Color.white; //create the subnode board
 				//call alphaBeta on subnode board, store score + move in returnedMove
 				returnedMove = alphaBeta(board, me, depth-1, alpha, beta, false);
 				board[currentMove.move.row][currentMove.move.col] = null;//reset the board
@@ -70,19 +70,17 @@ class RobinPlayer160719011 extends GomokuPlayer {
 				//pruning - still not sure about this breakoff
 				if (beta <= alpha) {
 					bestMove.score = beta;
-					bestMove.move = new Move(4, 4);
+					bestMove.move = null;
 					return bestMove;
 				}
 			}
 			return bestMove;
-		}
-		else {
+		} else {
 			System.out.println("It's min's turn!");
-			ArrayList<MoveScore> moves = prepareMoves(board);
 			MoveScore returnedMove;
 			MoveScore bestMove = new MoveScore(new Move(4, 4), 2000);
 			for (MoveScore currentMove : moves) {
-				board[currentMove.move.row][currentMove.move.col] = me;//create the subnode board
+				board[currentMove.move.row][currentMove.move.col] = Color.black;//create the subnode board
 				//call alphabeta on subnode, storing data in returnedMove
 				returnedMove = alphaBeta(board, me, depth-1, alpha, beta, true);
 				board[currentMove.move.row][currentMove.move.col] = null;
@@ -98,7 +96,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 				//pruning - still not sure about this breakoff
 				if (beta <= alpha) {
 					bestMove.score = alpha;
-					bestMove.move = new Move(4, 4); 
+					bestMove.move = null;
 					return bestMove;
 				}
 			}
@@ -114,11 +112,9 @@ class RobinPlayer160719011 extends GomokuPlayer {
 		for (int i = 0; i < 8; i++) {//rows
 			for (int j = 0; j < 8; j++) {//cols
 				if (board[i][j] == Color.white) {
-					System.out.println("square: "+i+","+j+"  is white");
 					squareScore = scorePatterns(getPatterns(board, Color.white, i, j));
 					boardScore += (Color.white == me) ? squareScore : squareScore*2;
 				} else if (board[i][j] == Color.black) {
-					System.out.println("square: "+i+","+j+" is black!");
 					squareScore = scorePatterns(getPatterns(board, Color.black, i, j));
 					boardScore -= (Color.black == me) ? squareScore : squareScore*2;
 				} else {
@@ -127,19 +123,6 @@ class RobinPlayer160719011 extends GomokuPlayer {
 				//Whatever player *I* am, I want to give a multiplier to the opponent's
 				//patterns, so that preventing them from developing patterns is > making
 				//my own
-
-
-				/*This is debug code, essentially it's random, 
-				 * but it tests pruning etc too.
-				 *
-				Random random = new Random();
-				int randomScore = (random.nextInt(10) - 10);
-				if (board[i][j] == Color.black) {
-					totalScore = randomScore;
-				} else if (board[i][j] == Color.white) {
-					totalScore = randomScore;
-				}
-				*/
 			}
 		}
 		System.out.println("Total score for this board is: "+boardScore);
@@ -160,7 +143,6 @@ class RobinPlayer160719011 extends GomokuPlayer {
 			int tmpRow = row;
 			int tmpCol = col;
 			for (int i = 1; i < 6; i++) {
-				System.out.println("counter is: "+counter);
 				pattern = i;
 				counter = 0; //could be 0
 				tmpRow = row;
@@ -168,7 +150,6 @@ class RobinPlayer160719011 extends GomokuPlayer {
 
 				switch(pattern) {
 					case 1:		
-						System.out.println("Searching upwards");
 						for (int j = 1; j < 6; j++) {
 							if (tmpRow > 0 && board[tmpRow-1][tmpCol] == me) {
 								tmpRow--;
@@ -180,7 +161,6 @@ class RobinPlayer160719011 extends GomokuPlayer {
 						}
 						break;
 					case 2:
-						System.out.println("Searching up/right");
 						for (int k = 1; k < 6; k++) {
 							if (tmpRow > 0 && tmpCol < 7 && board[tmpRow-1][tmpCol+1] == me) {
 								tmpRow--;
@@ -192,8 +172,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 							}
 						}
 						break;
-					case 3:
-						System.out.println("Searching right");
+					case 3:;
 						for (int l = 1; l < 6; l++) {
 							if (tmpCol < 7 && board[tmpRow][tmpCol+1] == me) {
 								tmpCol++;
@@ -205,7 +184,6 @@ class RobinPlayer160719011 extends GomokuPlayer {
 						}
 						break;
 					case 4:
-						System.out.println("Searching down/right");
 						for (int m = 1; m < 6; m++) {
 							if (tmpCol < 7 && tmpRow < 7 && board[tmpRow+1][tmpCol+1] == me) {
 								tmpCol++;
@@ -217,8 +195,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 							}
 						}
 						break;
-					case 5:
-						System.out.println("Searching dooooown");
+					case 5:					
 						for (int n = 1; n < 6; n++) {
 							if (tmpRow < 7 && board[tmpRow+1][tmpCol] == me) {
 								tmpRow++;	
@@ -234,8 +211,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 				}
 				
 				
-			}
-		System.out.println("we've made it to the return of search()");		
+			}	
 		return patterns;
 	}//search()
 }//class RobinPlayer160719011
