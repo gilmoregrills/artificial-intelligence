@@ -135,85 +135,84 @@ class RobinPlayer160719011 extends GomokuPlayer {
 		return score;
 	}
 	public ArrayList<Integer> getPatterns(Color[][] board, Color me, int row, int col) {
-			//not a particularly elegant function (though the patterns are quite nice in solarized
-			//takes a board position, increments row and/or col numbers checking for the same pieces
-			//if found, it increments a counter and adds that counter to the patterns list at the end 
-			//only searches up, down, right and right-side diagonals to save on time
-			ArrayList<Integer> patterns = new ArrayList<Integer>();
-			int pattern = 0;
-			int counter = 0;
-			int tmpRow = row;
-			int tmpCol = col;
-			for (int i = 1; i < 6; i++) {
-				pattern = i;
-				counter = 0;
-				tmpRow = row;
-				tmpCol = col;
-
-				switch(pattern) {
-					case 1:		
-						for (int j = 1; j < 6; j++) {
-							if (tmpRow > 0 && board[tmpRow-1][tmpCol] == me) {
-								tmpRow--;
-								counter++;
-							} else {
-								patterns.add(counter);
-								break;
-							}
+		//not a particularly elegant function (though the patterns are quite nice in solarized
+		//takes a board position, increments row and/or col numbers checking for the same pieces
+		//if found, it increments a counter and adds that counter to the patterns list at the end 
+		//only searches up, down, right and right-side diagonals to save on time
+		ArrayList<Integer> patterns = new ArrayList<Integer>();
+		int pattern = 0;
+		int counter = 0;
+		int tmpRow = row;
+		int tmpCol = col;
+		for (int i = 1; i < 6; i++) {
+			pattern = i;
+			counter = 0;
+			tmpRow = row;
+			tmpCol = col;
+			switch(pattern) {
+				case 1:		
+					for (int j = 1; j < 6; j++) {
+						if (tmpRow > 0 && board[tmpRow-1][tmpCol] == me) {
+							tmpRow--;
+							counter++;
+						} else {
+							patterns.add(counter);
+							break;
 						}
-						break;
-					case 2:
-						for (int k = 1; k < 6; k++) {
-							if (tmpRow > 0 && tmpCol < 7 && board[tmpRow-1][tmpCol+1] == me) {
-								tmpRow--;
-								tmpCol++;
-								counter++;
-							} else { 
-								patterns.add(counter);
-								break;
-							}
+					}
+					break;
+				case 2:
+					for (int k = 1; k < 6; k++) {
+						if (tmpRow > 0 && tmpCol < 7 && board[tmpRow-1][tmpCol+1] == me) {
+							tmpRow--;
+							tmpCol++;
+							counter++;
+						} else { 
+							patterns.add(counter);
+							break;
 						}
-						break;
-					case 3:;
-						for (int l = 1; l < 6; l++) {
-							if (tmpCol < 7 && board[tmpRow][tmpCol+1] == me) {
-								tmpCol++;
-								counter++;
-							} else {
-								patterns.add(counter);
-								break;
-							}
+					}
+					break;
+				case 3:
+					for (int l = 1; l < 6; l++) {
+						if (tmpCol < 7 && board[tmpRow][tmpCol+1] == me) {
+							tmpCol++;
+							counter++;
+						} else {
+							patterns.add(counter);
+							break;
 						}
-						break;
-					case 4:
-						for (int m = 1; m < 6; m++) {
-							if (tmpCol < 7 && tmpRow < 7 && board[tmpRow+1][tmpCol+1] == me) {
-								tmpCol++;
-								tmpRow++;
-								counter++;
-							} else {
-								patterns.add(counter);
-								break;
-							}
+					}
+					break;
+				case 4:
+					for (int m = 1; m < 6; m++) {
+						if (tmpCol < 7 && tmpRow < 7 && board[tmpRow+1][tmpCol+1] == me) {
+							tmpCol++;
+							tmpRow++;
+							counter++;
+						} else {
+							patterns.add(counter);
+							break;
 						}
-						break;
-					case 5:					
-						for (int n = 1; n < 6; n++) {
-							if (tmpRow < 7 && board[tmpRow+1][tmpCol] == me) {
-								tmpRow++;	
-								counter++;
-							} else {
-								patterns.add(counter);
-								break;
-							}
+					}
+					break;
+				case 5:					
+					for (int n = 1; n < 6; n++) {
+						if (tmpRow < 7 && board[tmpRow+1][tmpCol] == me) {
+							tmpRow++;	
+							counter++;
+						} else {
+							patterns.add(counter);
+							break;
 						}
-						break;
-					default:
-						break;
-				}
+					}
+					break;
+				default:
+					break;
+			}
 				
 				
-			}	
+		}	
 		return patterns;
 	}//search()
 }//class RobinPlayer160719011
