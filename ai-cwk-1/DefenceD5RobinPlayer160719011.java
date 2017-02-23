@@ -2,7 +2,7 @@ import java.awt.Color;
 import java.util.*;
 import java.util.ArrayList;
 
-class RobinPlayer160719011 extends GomokuPlayer {
+class DefenceD5RobinPlayer160719011 extends GomokuPlayer {
 
 	//the horribly-named MoveScore object holds a move,  and the score returned by eval();
 	private class MoveScore {
@@ -19,9 +19,9 @@ class RobinPlayer160719011 extends GomokuPlayer {
 		MoveScore myMove;
 		//white is always max, black is always min
 		if (me == Color.white) {
-			myMove = alphaBeta(board, me, 4, -2000, 2000, true);
+			myMove = alphaBeta(board, me, 5, -2000, 2000, true);
 		} else {
-			myMove = alphaBeta(board, me, 4, -2000, 2000, false);
+			myMove = alphaBeta(board, me, 5, -2000, 2000, false);
 		}
 		return myMove.move;
 	}//chooseMove()
@@ -49,7 +49,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 		}
 		ArrayList<MoveScore> moves = prepareMoves(board);//prepare the moves
 		if (max == true) {
-			System.out.println("it's max's turn");
+			//System.out.println("it's max's turn");
 			MoveScore returnedMove;
 			MoveScore bestMove = new MoveScore(new Move(4, 4), -2000);
 			for (MoveScore currentMove : moves) {
@@ -75,7 +75,7 @@ class RobinPlayer160719011 extends GomokuPlayer {
 			}
 			return bestMove;
 		} else {
-			System.out.println("It's min's turn!");
+			//System.out.println("It's min's turn!");
 			MoveScore returnedMove;
 			MoveScore bestMove = new MoveScore(new Move(4, 4), 2000);
 			for (MoveScore currentMove : moves) {
@@ -108,21 +108,20 @@ class RobinPlayer160719011 extends GomokuPlayer {
 		//this function takes the board, it passes each non-null index to the pattern scoring function
 		//the pattern scoring function is passed the results from the pattern CHECKING function (spaghetti!)
 		//and the resulting score is subtracted or added to the board score
-		//If the patterns are for the opponent, there is a small multiplier added - helps encourage defensive play
 		int boardScore = 0;
 		int squareScore = 0;
 		for (int i = 0; i < 8; i++) {//rows
 			for (int j = 0; j < 8; j++) {//cols
 				if (board[i][j] == Color.white) {
 					squareScore = scorePatterns(getPatterns(board, Color.white, i, j));
-					boardScore += (Color.white == me) ? squareScore : squareScore*1.1;
+					boardScore += (Color.white == me) ? squareScore : squareScore*1.02;//opponent score multiplier
 				} else if (board[i][j] == Color.black) {
 					squareScore = scorePatterns(getPatterns(board, Color.black, i, j));
-					boardScore -= (Color.black == me) ? squareScore : squareScore*1.1;
+					boardScore -= (Color.black == me) ? squareScore : squareScore*1.02;//encourages more or less defensive play
 				}
 			}
 		}
-		System.out.println("Total score for this board is: "+boardScore);
+		//System.out.println("Total score for this board is: "+boardScore);
 		return boardScore;
 	}//eval()
 	public int scorePatterns(ArrayList<Integer> patterns) {
@@ -138,13 +137,13 @@ class RobinPlayer160719011 extends GomokuPlayer {
 		//not a particularly elegant function (though the patterns are quite nice in solarized
 		//takes a board position, increments row and/or col numbers checking for the same pieces
 		//if found, it increments a counter and adds that counter to the patterns list at the end 
-		//only searches up, down, right and right-side diagonals to save on time
+		//COULD POTENTIALLY ONLY SEARCH UP, UPRIGHT, RIGHT, DOWNRIGHT, DOWN TO SAVE TIME?
 		ArrayList<Integer> patterns = new ArrayList<Integer>();
 		int pattern = 0;
 		int counter = 0;
 		int tmpRow = row;
 		int tmpCol = col;
-		for (int i = 1; i < 6; i++) {
+		for (int i = 1; i < 9; i++) {
 			pattern = i;
 			counter = 0;
 			tmpRow = row;
@@ -200,6 +199,41 @@ class RobinPlayer160719011 extends GomokuPlayer {
 					for (int n = 1; n < 6; n++) {
 						if (tmpRow < 7 && board[tmpRow+1][tmpCol] == me) {
 							tmpRow++;	
+							counter++;
+						} else {
+							patterns.add(counter);
+							break;
+						}
+					}
+					break;
+				case 6:
+					for (int k = 1; k < 6; k++) {
+						if (tmpRow < 7 && tmpCol > 0 && board[tmpRow+1][tmpCol-1] == me) {
+							tmpRow++;
+							tmpCol--;
+							counter++;
+						} else { 
+							patterns.add(counter);
+							break;
+						}
+					}
+					break;
+				case 7:
+					for (int l = 1; l < 6; l++) {
+						if (tmpCol > 0 && board[tmpRow][tmpCol-1] == me) {
+							tmpCol--;
+							counter++;
+						} else {
+							patterns.add(counter);
+							break;
+						}
+					}
+					break;
+				case 8:
+					for (int m = 1; m < 6; m++) {
+						if (tmpCol > 0 && tmpRow > 0 && board[tmpRow-1][tmpCol-1] == me) {
+							tmpCol--;
+							tmpRow--;
 							counter++;
 						} else {
 							patterns.add(counter);
