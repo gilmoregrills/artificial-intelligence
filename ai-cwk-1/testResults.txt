@@ -1,0 +1,16 @@
+test 1:
+D4RobinPlayer160719011 1 3 2 2 3 5
+D5RobinPlayer160719011 2 0 4 2 2 4
+DefenceD4RobinPlayer160719011 4 1 1 6 3 9
+
+test 2:
+D4RobinPlayer160719011 1 3 2 2 3 5
+D5RobinPlayer160719011 2 0 4 2 2 4
+DefenceD4RobinPlayer160719011 4 1 1 6 3 9
+
+test3:
+D4RobinPlayer160719011 1 5 2 3 4 7
+D5RobinPlayer160719011 2 0 6 2 2 4
+DefenceD4RobinPlayer160719011 5 1 2 8 3 11
+MoreDefenceD4RobinPlayer160719011 3 4 1 6 4 10
+
