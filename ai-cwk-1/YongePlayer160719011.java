@@ -6,7 +6,7 @@ import java.awt.Color;
 import java.util.*;
 import java.util.ArrayList;
 
-class D4RobinPlayer160719011 extends GomokuPlayer {
+class YongePlayer160719011 extends GomokuPlayer {
 
 	//the horribly-named MoveScore object holds a move, and the score returned by eval();
 	private class MoveScore {
@@ -110,10 +110,10 @@ class D4RobinPlayer160719011 extends GomokuPlayer {
 			for (int j = 0; j < 8; j++) {//cols
 				if (board[i][j] == Color.white) {
 					squareScore = scorePatterns(getPatterns(board, Color.white, i, j));
-					boardScore += (Color.white == me) ? squareScore : squareScore*1;//opponent score multiplier
+					boardScore += (Color.white == me) ? squareScore : squareScore*1.02;//opponent score multiplier
 				} else if (board[i][j] == Color.black) {
 					squareScore = scorePatterns(getPatterns(board, Color.black, i, j));
-					boardScore -= (Color.black == me) ? squareScore : squareScore*1;//encourages more or less defensive play
+					boardScore -= (Color.black == me) ? squareScore : squareScore*1.02;//encourages more or less defensive play
 				}
 			}
 		}
