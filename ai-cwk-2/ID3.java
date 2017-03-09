@@ -95,12 +95,20 @@ class ID3 {
 	public void classify(String[][] testData) {
 		if (decisionTree == null)
 			error("Please run training phase before classification");
-		// PUT  YOUR CODE HERE FOR CLASSIFICATION
+		//split data based on the attribute that corresponds to the VALUE
+		//of decisionTree
+		//next split data based on the value of each child of decisionTree
+		//in turn?
+		//once you reach a leaf node (value == attributes), assign that value
+		//as the class (final position of each row array)
 	} // classify()
 
 	public void train(String[][] trainingData) {
 		indexStrings(trainingData);
-		// PUT  YOUR CODE HERE FOR TRAINING
+		//calculate the entropy of every attribute in the current data set
+		//split up the set based on the attribute that results in the lowest entropy
+		//make a TreeNode where the value is that attribute
+		//call train on each subset using the remaining available attributes
 	} // train()
 
 	/** Given a 2-dimensional array containing the training data, numbers each
