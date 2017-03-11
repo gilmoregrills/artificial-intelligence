@@ -104,11 +104,27 @@ class ID3 {
 	} // classify()
 
 	public void train(String[][] trainingData) {
-		indexStrings(trainingData);
-		//calculate the entropy of every attribute in the current data set
-		//split up the set based on the attribute that results in the lowest entropy
+		System.out.println("called train");
+		indexStrings(trainingData);//henceforth I should refer to the data array?
+		System.out.println("result of indexStrings:");
+		printStrings();
+		//calc entropy of entire set (to base information gain off of?)
+			//if this is 0 (no randomness/fully classified) then is leaf
+		//if decisionTree == null - this might be wrong
+			//create a TreeNode as root node with no value or children yet
+			//we will assign to value when we know what attribute
+		//loop through each attribute (data[0].length (or any row))
+			//calculate the information gained by splitting on this attrib
+			//track this information gain somehow
+		//take the attribute with the greatest information gain		
 		//make a TreeNode where the value is that attribute
-		//call train on each subset using the remaining available attributes
+		//now if this is the real estate example and we split on location
+		//we would create the children TreeNode[] array with 3 indexes
+		//index 0 would be suburban, index 1 would be rural, index 2 would
+		//be urban
+		//how do I make it so that train() gets called on each of these children?
+		//can I loop through these indexes, trim the data array into the appropriate
+		//subset, then call train passing that subset?
 	} // train()
 
 	/** Given a 2-dimensional array containing the training data, numbers each
@@ -177,11 +193,14 @@ class ID3 {
 
 	public static void main(String[] args) throws FileNotFoundException,
 												  IOException {
-		if (args.length != 2)
+													  
+		if (args.length != 2) {
 			error("Expected 2 arguments: file names of training and test data");
+		}
 		String[][] trainingData = parseCSV(args[0]);
 		String[][] testData = parseCSV(args[1]);
 		ID3 classifier = new ID3();
+		System.out.println("debugging! We just instantiated classifier");
 		classifier.train(trainingData);
 		classifier.printTree();
 		classifier.classify(testData);
