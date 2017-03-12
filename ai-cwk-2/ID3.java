@@ -109,14 +109,20 @@ class ID3 {
 		System.out.println("result of indexStrings:");
 		printStrings();
 		//calc entropy of entire set (to base information gain off of?)
+		calcEntropy(data);	
+			//need the number of 1 or yes class, out of # examples
 			//if this is 0 (no randomness/fully classified) then is leaf
 		//if decisionTree == null - this might be wrong
 			//create a TreeNode as root node with no value or children yet
 			//we will assign to value when we know what attribute
-		//loop through each attribute (data[0].length (or any row))
-			//calculate the information gained by splitting on this attrib
-			//track this information gain somehow
-		//take the attribute with the greatest information gain		
+		double[] entropy = new int[attributes-1];
+		//NOW, for each attribute not yet split on, do the following: 
+			//create a sub-array for each unique attribute and add to that
+			//sub-array only rows where attribute value == that unique attribute
+			//calcEntropy(that sub-array), add returned double to corresponding
+			//index of entropy array
+		//Now, the index of entropy with the highest number is the one that we will
+		//split based on next, 	
 		//make a TreeNode where the value is that attribute
 		//now if this is the real estate example and we split on location
 		//we would create the children TreeNode[] array with 3 indexes
@@ -126,6 +132,18 @@ class ID3 {
 		//can I loop through these indexes, trim the data array into the appropriate
 		//subset, then call train passing that subset?
 	} // train()
+	public double calcEntropy(String[][] data) {
+		//pass the data, returns the entropy of the dataset
+		int[] classes = new int[stringCount[attributes-1]]; //should always be int[2]
+		for (int i = 0; i <= stringCount[attributes-1]; i++) {
+		//initial loop loops through each class, inner loop checks for matches
+			for (int j = 1; j < examples; j++) {
+				classes[i] = (data[j][attributes-1] == strings[attributes-1][i]) ? classes[i]++ : classes[i];
+			}
+		//once these loops complete, we should have an array representing the numbers of
+		//instances of each class
+		}	
+	}// calcEntropy
 
 	/** Given a 2-dimensional array containing the training data, numbers each
 	 *  unique value that each attribute has, and stores these Strings in
