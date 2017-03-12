@@ -110,7 +110,6 @@ class ID3 {
 		printStrings();
 		//calc entropy of entire set (to base information gain off of?)
 		calcEntropy(data);	
-			//need the number of 1 or yes class, out of # examples
 			//if this is 0 (no randomness/fully classified) then is leaf
 		//if decisionTree == null - this might be wrong
 			//create a TreeNode as root node with no value or children yet
@@ -121,16 +120,12 @@ class ID3 {
 			//sub-array only rows where attribute value == that unique attribute
 			//calcEntropy(that sub-array), add returned double to corresponding
 			//index of entropy array
-		//Now, the index of entropy with the highest number is the one that we will
-		//split based on next, 	
-		//make a TreeNode where the value is that attribute
-		//now if this is the real estate example and we split on location
-		//we would create the children TreeNode[] array with 3 indexes
-		//index 0 would be suburban, index 1 would be rural, index 2 would
-		//be urban
-		//how do I make it so that train() gets called on each of these children?
-		//can I loop through these indexes, trim the data array into the appropriate
-		//subset, then call train passing that subset?
+		//Now, the index of entropy containing the lowest number is the number of the attr
+		//we will be splitting on next
+		//WHERE DO I MAKE THE TREENODE??
+		//I then need to create the subsets in array form and pass them to train() again
+		//this will effectively iterate through each branch (kinda depth-first style) 
+		//and should eventually populate the full tree
 	} // train()
 	public double calcEntropy(String[][] data) {
 		//pass the data, returns the entropy of the dataset
@@ -142,7 +137,9 @@ class ID3 {
 			}
 		//once these loops complete, we should have an array representing the numbers of
 		//instances of each class
-		}	
+		}
+
+			
 	}// calcEntropy
 
 	/** Given a 2-dimensional array containing the training data, numbers each
