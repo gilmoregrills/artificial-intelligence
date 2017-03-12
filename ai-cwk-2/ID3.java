@@ -106,17 +106,20 @@ class ID3 {
 	public void train(String[][] trainingData) {
 		System.out.println("called train");
 		indexStrings(trainingData);//henceforth I should refer to the data array?
+		//calling this every time also means that I can consistently refer to data
+		//even when using subsets
 		System.out.println("result of indexStrings:");
 		printStrings();
 		//calc entropy of entire set (to base information gain off of?)
-		calcEntropy(data);	
+		double totalEntropy = calcEntropy(data);	
 			//if this is 0 (no randomness/fully classified) then is leaf
 		//if decisionTree == null - this might be wrong
 			//create a TreeNode as root node with no value or children yet
 			//we will assign to value when we know what attribute
-		double[] entropy = new int[attributes-1];
+		double[] potentialEntropy = new int[attributes-1];
 		//NOW, for each attribute not yet split on, do the following: 
-			//create a sub-array for each unique attribute and add to that
+		//(note that we should check if the attribute has been split on by checking TreeNode values)
+			//create a new array for each unique attribute and add to that
 			//sub-array only rows where attribute value == that unique attribute
 			//calcEntropy(that sub-array), add returned double to corresponding
 			//index of entropy array
@@ -127,19 +130,26 @@ class ID3 {
 		//this will effectively iterate through each branch (kinda depth-first style) 
 		//and should eventually populate the full tree
 	} // train()
-	public double calcEntropy(String[][] data) {
-		//pass the data, returns the entropy of the dataset
-		int[] classes = new int[stringCount[attributes-1]]; //should always be int[2]
+	public double calcEntropy(String[][] subset) {
+		//careful what index variables I use here, will be called on smaller datasets
+		//pass the array you want testing, will take arrays with fewer rows but columns must be intact
+		int rows = subset.length-1;//-1 to not include the titles
+		int[] classInstances = new int[stringCount[attributes-1]]; //should always be int[2]
 		for (int i = 0; i <= stringCount[attributes-1]; i++) {
 		//initial loop loops through each class, inner loop checks for matches
-			for (int j = 1; j < examples; j++) {
-				classes[i] = (data[j][attributes-1] == strings[attributes-1][i]) ? classes[i]++ : classes[i];
+			for (int j = 1; j < subset.length; j++) {
+				classInstances[i] = (subset[j][attributes-1] == strings[attributes-1][i]) ? classInstances[i]++ : classInstances[i];
 			}
 		//once these loops complete, we should have an array representing the numbers of
-		//instances of each class
+		//instances of each class in the subset
 		}
-
-			
+		//pretty sure this bit is incorrect math-wise, but it's servicable pseudocode
+		//this should do the actual entropy calculation
+		double entropy; 
+		for (int k = 0; k < classInstances.length-1; k++) {
+			entropy -= xlogx(row/classInstances[k]);
+		}	
+		return entropy; //pass back the entropy calc, can compute the gain in train()	
 	}// calcEntropy
 
 	/** Given a 2-dimensional array containing the training data, numbers each
