@@ -130,6 +130,10 @@ class ID3 {
 		//this will effectively iterate through each branch (kinda depth-first style) 
 		//and should eventually populate the full tree
 	} // train()
+
+	public String[][] createSubset(String[][] dataset, int attrib) {
+		//takes an input dataset and returns a dataset trimmed based on an attribute
+	}// createSubset()
 	public double calcEntropy(String[][] subset) {
 		//careful what index variables I use here, will be called on smaller datasets
 		//pass the array you want testing, will take arrays with fewer rows but columns must be intact
