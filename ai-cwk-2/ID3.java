@@ -105,7 +105,6 @@ class ID3 {
 	} // classify()
 
 	public void train(String[][] trainingData) {
-		System.out.println("called train");
 		indexStrings(trainingData);//henceforth I should refer to the data array
 		System.out.println("result of indexStrings:");
 		printStrings();
@@ -116,24 +115,24 @@ class ID3 {
 		}
 		System.out.println("totalEntropy of this dataset is: "+totalEntropy);	
 		//stores the entropy of a sub-dataset split on a given attribute
-		double[] potentialGain = new double[attributes-1];
+		double[] potentialGain = new double[attributes];
 		int bestAttribute = 1;
 		//NOW, for each attribute not yet split on, do the following:
-		System.out.println("poentialGain is: "+potentialGain.length+" indexes long");
-		for (int i = 0; i < data[0].length-1; i++) {//currently < length-1 to avoid splitting on the class col
-			//for each attribute!
+		for (int i = 0; i < data[0].length-1; i++) {
 			System.out.println(potentialGain[i]);
-			potentialGain[i] = totalEntropy;
-			for (int j = 0; j < strings[i].length; j++) {
+			potentialGain[i] = 0;
+			for (int j = 0; j < stringCount[i]; j++) {
 				//for each example
-				double subSetEntropy = calcEntropy(createSubset(data, i, j));//INSTANTIATE SUBSET FIRST THEN CALCENTROPY()
-				potentialGain[i] -= subSetEntropy; 
+				String[][] subSet = createSubset(data, i, j);
+				//this math is wrong
+				double subSetEntropy = calcEntropy(subSet);
+				potentialGain[i] += subSetEntropy; 
 			}
 			bestAttribute = (potentialGain[i] < bestAttribute) ? i : bestAttribute;
-			//now the potentialGain array is populated with the information gain from each subset
-			//and bestAttribute contains the index of the attribute that gives the most info gain
 			System.out.println("information gain of attribute: "+i+" is: "+potentialGain[i]);
 		}
+		//now the potentialGain array is populated with the information gain from each subset
+		//and bestAttribute contains the index of the attribute that gives the most info gain
 		System.out.println("the best attribute was: "+bestAttribute+" which is: "+data[0][bestAttribute]);
 		//so I think here is where I should do the tree stuff:
 		//the value for this node should be bestAttribute
@@ -147,30 +146,40 @@ class ID3 {
 		//and call train() on them, this should complete this whole recursive thing??
 	} // train()
 
+	/**
+	 * Takes an input dataset and returns a dataset trimmed based on a 
+	 * particular attribute, value pair (might need updating to also trim
+	 * out the attribute column once used if I'm to make this general enough)
+	 **/
 	public String[][] createSubset(String[][] dataSet, int attr, int val) {
-		//takes an input dataset and returns a dataset trimmed based on a
-		//particular attribute, value pair (might need updating to also trim
-		//out the attribute column once used)
 		String value = strings[attr][val];
+		System.out.println("value is: "+value);
 		int attCount = 1;//how many rows the new array should have, can I get 
-				 //this info anywhere else? extra for loop is annoying
-				 //minimum 1 because of the attribute name columns
+				 //this info anywhere else?
 		for (int i = 1; i < examples; i++) {
-			if (dataSet[i][attr] == value) {
+			if (dataSet[i][attr].equals(value)) {
 				attCount++;
 			}
 		}
+		System.out.println("there are "+attCount+" instances of this attribute");
 		String[][] subSet = new String[attCount][attributes];
 		subSet[0] = dataSet[0];
-		for (int j = 1; j < attCount; j++) {
-			if (dataSet[j][attr] == value) {
-				subSet[j] = dataSet[j];
+		int exampleCount = 1;
+		for (int j = 1; j < examples; j++) {
+			if (dataSet[j][attr].equals(value)) {
+				subSet[exampleCount] = dataSet[j];
+				exampleCount++;
 			}
 		}
 		Arrays.toString(subSet);
 		return subSet;
 	}// createSubset()
 
+	/**
+	 * Pass the array you want to calculate the entropy of, assumes the class
+	 * is always the last column, at the moment it will take arrays with a varied
+	 * amount of rows, but columns have to be constant - this can be changed obvs
+	 **/
 	public double calcEntropy(String[][] dataSet) {
 		//pass the array you want testing, will take arrays with fewer rows but atm columns must be intact?
 		double rows = dataSet.length-1;
@@ -189,18 +198,29 @@ class ID3 {
 				}
 			}
 		}// loops creating class arrays
-		//this block does the entropy calculation
-		//hardcoded version for testing, this will only work on sets with 2 classes
-		double testEntropy;
-		testEntropy = (-xlogx(classInstances[0]/rows) -xlogx(classInstances[1]/rows));
-		//this version assumed there is minimum 1 class, essentially appends 1 more 
-		//chunk of math for each additional class
+		/**
+		 * hardcoded version for testing, this will only work on sets with 2 classes:
+		 * double testEntropy;
+		 * testEntropy = (-xlogx(classInstances[0]/rows) -xlogx(classInstances[1]/rows));
+		 * the production version assumes minimum one class, and is essentially appending 
+		 * chunks of math onto the single-class calculation
+		 **/
 		double entropy = -xlogx(classInstances[0]/rows);
 		for (int k = 1; k < classInstances.length; k++) {
 			entropy -= (xlogx(classInstances[k]/rows));	
 		}
 		return entropy;	
 	}// calcEntropy
+
+	/**
+	 * I've had to do this in two seperate functions now so it deserves its own one
+	 * takes a dataset, attribute, and value and returns the number of occurrences 
+	 * in the given dataset.
+	 **/
+	public int attributeInstances(String[][] dataSet) {
+		
+		return 0;	
+	}// attributeInstances
 
 	/** Given a 2-dimensional array containing the training data, numbers each
 	 *  unique value that each attribute has, and stores these Strings in
