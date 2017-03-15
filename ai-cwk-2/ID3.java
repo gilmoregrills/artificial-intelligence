@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Scanner;
+import java.util.Arrays;
 
 class ID3 {
 
@@ -105,55 +106,76 @@ class ID3 {
 
 	public void train(String[][] trainingData) {
 		System.out.println("called train");
-		indexStrings(trainingData);//henceforth I should refer to the data array?
-		//calling this every time also means that I can consistently refer to data
-		//even when using subsets
+		indexStrings(trainingData);//henceforth I should refer to the data array
 		System.out.println("result of indexStrings:");
 		printStrings();
-		//calc entropy of entire set (to base information gain off of?)
+		//calculate entropy of entire data set at current time
 		double totalEntropy = calcEntropy(data);	
-			//if this is 0 (no randomness/fully classified) then is leaf
-		//if decisionTree == null - this might be wrong
-			//create a TreeNode as root node with no value or children yet
-			//we will assign to value when we know what attribute
-		double[] potentialEntropy = new int[attributes-1];
+		if (totalEntropy == 0) { 
+			//this is a leaf so do something?
+		}
+		System.out.println("totalEntropy of this dataset is: "+totalEntropy);	
+		//stores the entropy of a sub-dataset split on a given attribute
+		double[] potentialGain = new double[attributes-1];
+		int bestAttribute = null; 
 		//NOW, for each attribute not yet split on, do the following: 
-		//(note that we should check if the attribute has been split on by checking TreeNode values)
-			//create a new array for each unique attribute and add to that
-			//sub-array only rows where attribute value == that unique attribute
-			//calcEntropy(that sub-array), add returned double to corresponding
-			//index of entropy array
-		//Now, the index of entropy containing the lowest number is the number of the attr
-		//we will be splitting on next
-		//WHERE DO I MAKE THE TREENODE??
-		//I then need to create the subsets in array form and pass them to train() again
-		//this will effectively iterate through each branch (kinda depth-first style) 
-		//and should eventually populate the full tree
+		for (int i = 0; i < data[0].length-1; i++) {//currently < length-1 to avoid splitting on the class col
+			//for each attribute!
+			potentialGain[i] = totalEntropy;
+			for (int j = 0; j < strings[i].length; j++) {
+				//for each example
+				potentialGain[i] -= calcEntropy(createSubset(data, i, j));
+			}
+			bestAttribute = (bestAttribute == null || potentialGain[i] < bestAttribute) ? i : bestAttribute;
+			//now the potentialGain array is populated with the information gain from each subset
+			//and bestAttribute contains the index of the attribute that gives the most info gain
+		}
+		//so I think here is where I should do the tree stuff:
+		//the value for this node should be bestAttribute
+		//the children[] for this node should be the number of unique strings
+		if (decisionTree == null) {
+			decisionTree = new TreeNode(new TreeNode[attributes[bestAttribute].length], bestAttribute);
+		} else {
+			//iterate through the existing tree until you find a null child spot?? 
+		}
+		//I should then create subset arrays for each of the possible values of bestAttribute
+		//and call train() on them, this should complete this whole recursive thing??
 	} // train()
 
-	public String[][] createSubset(String[][] dataset, int attrib) {
+	public String[][] createSubset(String[][] dataset, int attr, int value) {
 		//takes an input dataset and returns a dataset trimmed based on an attribute
+		return dataset;
 	}// createSubset()
+
 	public double calcEntropy(String[][] subset) {
-		//careful what index variables I use here, will be called on smaller datasets
-		//pass the array you want testing, will take arrays with fewer rows but columns must be intact
-		int rows = subset.length-1;//-1 to not include the titles
-		int[] classInstances = new int[stringCount[attributes-1]]; //should always be int[2]
-		for (int i = 0; i <= stringCount[attributes-1]; i++) {
-		//initial loop loops through each class, inner loop checks for matches
-			for (int j = 1; j < subset.length; j++) {
-				classInstances[i] = (subset[j][attributes-1] == strings[attributes-1][i]) ? classInstances[i]++ : classInstances[i];
+		//pass the array you want testing, will take arrays with fewer rows but atm columns must be intact?
+		double rows = subset.length-1;
+		double[] classInstances = new double[stringCount[attributes-1]]; //should always be int[2] in test
+		for (int i = 0; i < stringCount[attributes-1]; i++) {
+		//initial loop loops through each class, inner loop checks for matches against that class
+			String checkClass = strings[attributes-1][i];
+			for (int j = 1; j <= rows; j++) {
+				String currentRow = subset[j][attributes-1];
+				if (currentRow.equals(checkClass)) {
+					//System.out.println("a match!");	
+					classInstances[i]++;
+				}
+				else {
+					//System.out.println("not a match");
+				}
 			}
-		//once these loops complete, we should have an array representing the numbers of
-		//instances of each class in the subset
+		}// loops creating class arrays
+		//this block does the entropy calculation
+		//hardcoded version for testing, this will only work on sets with 2 classes
+		double testEntropy;
+		testEntropy = (-xlogx(classInstances[0]/rows) -xlogx(classInstances[1]/rows));
+		//this version assumed there is minimum 1 class, essentially appends 1 more 
+		//chunk of math for each additional class
+		double entropy = -xlogx(classInstances[0]/rows);
+		for (int k = 1; k < classInstances.length; k++) {
+			entropy -= (xlogx(classInstances[k]/rows));	
 		}
-		//pretty sure this bit is incorrect math-wise, but it's servicable pseudocode
-		//this should do the actual entropy calculation
-		double entropy; 
-		for (int k = 0; k < classInstances.length-1; k++) {
-			entropy -= xlogx(row/classInstances[k]);
-		}	
-		return entropy; //pass back the entropy calc, can compute the gain in train()	
+		return entropy;	
 	}// calcEntropy
 
 	/** Given a 2-dimensional array containing the training data, numbers each
