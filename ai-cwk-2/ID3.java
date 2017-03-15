@@ -117,24 +117,29 @@ class ID3 {
 		System.out.println("totalEntropy of this dataset is: "+totalEntropy);	
 		//stores the entropy of a sub-dataset split on a given attribute
 		double[] potentialGain = new double[attributes-1];
-		int bestAttribute = null; 
-		//NOW, for each attribute not yet split on, do the following: 
+		int bestAttribute = 1;
+		//NOW, for each attribute not yet split on, do the following:
+		System.out.println("poentialGain is: "+potentialGain.length+" indexes long");
 		for (int i = 0; i < data[0].length-1; i++) {//currently < length-1 to avoid splitting on the class col
 			//for each attribute!
+			System.out.println(potentialGain[i]);
 			potentialGain[i] = totalEntropy;
 			for (int j = 0; j < strings[i].length; j++) {
 				//for each example
-				potentialGain[i] -= calcEntropy(createSubset(data, i, j));
+				double subSetEntropy = calcEntropy(createSubset(data, i, j));//INSTANTIATE SUBSET FIRST THEN CALCENTROPY()
+				potentialGain[i] -= subSetEntropy; 
 			}
-			bestAttribute = (bestAttribute == null || potentialGain[i] < bestAttribute) ? i : bestAttribute;
+			bestAttribute = (potentialGain[i] < bestAttribute) ? i : bestAttribute;
 			//now the potentialGain array is populated with the information gain from each subset
 			//and bestAttribute contains the index of the attribute that gives the most info gain
+			System.out.println("information gain of attribute: "+i+" is: "+potentialGain[i]);
 		}
+		System.out.println("the best attribute was: "+bestAttribute+" which is: "+data[0][bestAttribute]);
 		//so I think here is where I should do the tree stuff:
 		//the value for this node should be bestAttribute
 		//the children[] for this node should be the number of unique strings
 		if (decisionTree == null) {
-			decisionTree = new TreeNode(new TreeNode[attributes[bestAttribute].length], bestAttribute);
+			//decisionTree = new TreeNode(new TreeNode[attributes[bestAttribute].length], bestAttribute);
 		} else {
 			//iterate through the existing tree until you find a null child spot?? 
 		}
@@ -142,20 +147,39 @@ class ID3 {
 		//and call train() on them, this should complete this whole recursive thing??
 	} // train()
 
-	public String[][] createSubset(String[][] dataset, int attr, int value) {
-		//takes an input dataset and returns a dataset trimmed based on an attribute
-		return dataset;
+	public String[][] createSubset(String[][] dataSet, int attr, int val) {
+		//takes an input dataset and returns a dataset trimmed based on a
+		//particular attribute, value pair (might need updating to also trim
+		//out the attribute column once used)
+		String value = strings[attr][val];
+		int attCount = 1;//how many rows the new array should have, can I get 
+				 //this info anywhere else? extra for loop is annoying
+				 //minimum 1 because of the attribute name columns
+		for (int i = 1; i < examples; i++) {
+			if (dataSet[i][attr] == value) {
+				attCount++;
+			}
+		}
+		String[][] subSet = new String[attCount][attributes];
+		subSet[0] = dataSet[0];
+		for (int j = 1; j < attCount; j++) {
+			if (dataSet[j][attr] == value) {
+				subSet[j] = dataSet[j];
+			}
+		}
+		Arrays.toString(subSet);
+		return subSet;
 	}// createSubset()
 
-	public double calcEntropy(String[][] subset) {
+	public double calcEntropy(String[][] dataSet) {
 		//pass the array you want testing, will take arrays with fewer rows but atm columns must be intact?
-		double rows = subset.length-1;
+		double rows = dataSet.length-1;
 		double[] classInstances = new double[stringCount[attributes-1]]; //should always be int[2] in test
 		for (int i = 0; i < stringCount[attributes-1]; i++) {
 		//initial loop loops through each class, inner loop checks for matches against that class
 			String checkClass = strings[attributes-1][i];
 			for (int j = 1; j <= rows; j++) {
-				String currentRow = subset[j][attributes-1];
+				String currentRow = dataSet[j][attributes-1];
 				if (currentRow.equals(checkClass)) {
 					//System.out.println("a match!");	
 					classInstances[i]++;
