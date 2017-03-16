@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Scanner;
 import java.util.Arrays;
+import java.util.LinkedList;
 
 class ID3 {
 
@@ -62,6 +63,7 @@ class ID3 {
 	private String[][] data;	// Training data indexed by example, attribute
 	private String[][] strings; // Unique strings for each attribute
 	private int[] stringCount;  // Number of unique strings for each attribute
+	private LinkedList<TreeNode> nodeQueue;
 
 	public ID3() {
 		attributes = 0;
@@ -70,6 +72,7 @@ class ID3 {
 		data = null;
 		strings = null;
 		stringCount = null;
+		nodeQueue = new LinkedList<TreeNode>();
 	} // constructor
 	
 	public void printTree() {
@@ -119,7 +122,7 @@ class ID3 {
 					leafClass = y;	
 				}
 			}	
-			treeBuilder(decisionTree, leafClass, true);
+			nodeQueue.add(new TreeNode(null, leafClass));
 			return;	
 		}	
 		//stores the entropy of a sub-dataset split on a given attribute
@@ -156,15 +159,9 @@ class ID3 {
 			//System.out.println("information gain of attribute "+data[0][i]+" is: "+potentialGain[i]);
 		}
 
-		//so I think here is where I should do the tree stuff:
-		//the value for this node should be bestAttribute
-		//the children[] for this node should be the number of unique strings
-		if (decisionTree == null) {
-			TreeNode[] potentialChildren = new TreeNode[stringCount[bestAttribute]];
-			decisionTree = new TreeNode(potentialChildren, bestAttribute);
-		} else {
-			treeBuilder(decisionTree, bestAttribute, false);	
-		}
+		//here is where I create the TreeNode for this subset if it's not a leaf
+		nodeQueue.add(new TreeNode(new TreeNode[stringCount[bestAttribute]], bestAttribute));
+		
 		//I should then create subset arrays for each of the possible values of bestAttribute
 		//and call train() on them as the final act of this method?
 		for (int l = 0; l < stringCount[bestAttribute]; l++) {
@@ -173,25 +170,32 @@ class ID3 {
 			train(child);
 		}
 	} // train()
-
-	public void treeBuilder(TreeNode node, int value, boolean classified) {
+	/**
+	 * this should take a node and add it to the tree, first node will always
+	 * be root and the rest of the calls will be on the queue of TreeNodes
+	 * that train() should have prepared
+	 **/
+	public void buildTree() {
+		decisionTree = treeBuilder(decisionTree);
+	} // buildTree
+	public TreeNode treeBuilder(TreeNode node) {
 		//if (node.children == null) - I'm unsure as to which I should be testing for
-		if (node == null) {
-			//create a TreeNode here?
-			node = new TreeNode(new TreeNode[stringCount[value]], value);
-			System.out.println("create a node here!!!");
-			return;	
-		} else if (!classified) {
-			for (TreeNode child : node.children) {
-				System.out.println("let's check the childnodes");
-				treeBuilder(child, value, false);
+		//create a TreeNode here?
+		TreeNode returnNode = nodeQueue.remove();
+		if (node  == null) {
+			return returnNode;
+		} 
+		while (!nodeQueue.isEmpty()) {
+			if (returnNode.children != null) {
+				for (TreeNode child : returnNode.children) {
+					treeBuilder(child);
+				}
+			} else {
+				return returnNode;
 			}
-			return;
-		} else {
-			node = new TreeNode(null, value);
-			System.out.println("found a leaf!!");
-			return;
 		}
+		return returnNode;
+		//so the final return I think will be the first in the queue
 	} // treeBuilder()
 
 	/**
@@ -343,6 +347,7 @@ class ID3 {
 		ID3 classifier = new ID3();
 		System.out.println("debugging! We just instantiated classifier");
 		classifier.train(trainingData);
+		classifier.buildTree();
 		classifier.printTree();
 		classifier.classify(testData);
 	} // main()
