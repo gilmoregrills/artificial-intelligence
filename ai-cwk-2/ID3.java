@@ -176,6 +176,10 @@ class ID3 {
 	 * that train() should have prepared
 	 **/
 	public void buildTree() {
+		//debugging
+		for (TreeNode node : nodeQueue) {
+			System.out.println("here's a node!");
+		}
 		decisionTree = treeBuilder(decisionTree);
 	} // buildTree
 	public TreeNode treeBuilder(TreeNode node) {
