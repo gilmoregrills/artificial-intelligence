@@ -48,6 +48,7 @@ class ID3 {
 					s += indent + data[0][value] + "=" +
 							strings[value][i] + "\n" +
 							children[i].toString(indent + '\t');
+				
 				return s;
 			} else
 				return indent + "Class: " + strings[attributes-1][value] + "\n";
@@ -106,13 +107,20 @@ class ID3 {
 
 	public void train(String[][] trainingData) {
 		indexStrings(trainingData);//henceforth I should refer to the data array
-		System.out.println("result of indexStrings:");
+		//System.out.println("result of indexStrings:");
 		printStrings();
 		
 		double totalEntropy = calcEntropy(data);
 		System.out.println("totalEntropy of this dataset is: "+totalEntropy);	
-		if (totalEntropy == 0) { 
-			//this is a leaf so create a leaf treenode and stahp
+		if (totalEntropy == 0) {
+			int leafClass = 0;
+			for (int y = 0; y < stringCount[attributes-1]; y++) {
+				if (data[1][attributes-1].equals(strings[attributes-1][y])) {
+					leafClass = y;	
+				}
+			}	
+			treeBuilder(decisionTree, leafClass, true);
+			return;	
 		}	
 		//stores the entropy of a sub-dataset split on a given attribute
 		double[] potentialGain = new double[attributes];
@@ -145,24 +153,46 @@ class ID3 {
 				comparator = potentialGain[i];
 				bestAttribute = i;
 			}
-			System.out.println("information gain of attribute "+data[0][i]+" is: "+potentialGain[i]);
+			//System.out.println("information gain of attribute "+data[0][i]+" is: "+potentialGain[i]);
 		}
-		System.out.println("the best attribute was attribute "+bestAttribute+" with a gain of: "+potentialGain[bestAttribute]);
-		//now the potentialGain array is populated with the information gain from each subset
-		//and bestAttribute contains the index of the attribute that gives the most info gain
-		//System.out.println("the best attribute was: "+bestAttribute+" which is: "+data[0][bestAttribute]);
+
 		//so I think here is where I should do the tree stuff:
 		//the value for this node should be bestAttribute
 		//the children[] for this node should be the number of unique strings
 		if (decisionTree == null) {
-			//decisionTree = new TreeNode(new TreeNode[attributes[bestAttribute].length], bestAttribute);
+			TreeNode[] potentialChildren = new TreeNode[stringCount[bestAttribute]];
+			decisionTree = new TreeNode(potentialChildren, bestAttribute);
 		} else {
-			//iterate through the existing tree until you find a null child spot, create a 
-			//TreeNode there with the value of bestAttribute?
+			treeBuilder(decisionTree, bestAttribute, false);	
 		}
 		//I should then create subset arrays for each of the possible values of bestAttribute
 		//and call train() on them as the final act of this method?
+		for (int l = 0; l < stringCount[bestAttribute]; l++) {
+			String[][] child = createSubset(data, bestAttribute, l);
+			System.out.println("about to make recursive call on the following array: \n"+Arrays.deepToString(child));
+			train(child);
+		}
 	} // train()
+
+	public void treeBuilder(TreeNode node, int value, boolean classified) {
+		//if (node.children == null) - I'm unsure as to which I should be testing for
+		if (node == null) {
+			//create a TreeNode here?
+			node = new TreeNode(new TreeNode[stringCount[value]], value);
+			System.out.println("create a node here!!!");
+			return;	
+		} else if (!classified) {
+			for (TreeNode child : node.children) {
+				System.out.println("let's check the childnodes");
+				treeBuilder(child, value, false);
+			}
+			return;
+		} else {
+			node = new TreeNode(null, value);
+			System.out.println("found a leaf!!");
+			return;
+		}
+	} // treeBuilder()
 
 	/**
 	 * Takes an input dataset and returns a dataset trimmed based on a 
@@ -172,26 +202,35 @@ class ID3 {
 	public String[][] createSubset(String[][] dataSet, int attr, int val) {
 		String value = strings[attr][val];
 		int attCount = attributeInstances(dataSet, attr, val);
-		String[][] subSet = new String[attCount+1][attributes];//the +1 is for the names row
+		String[][] subSet = new String[attCount+1][dataSet[0].length-2];//the +1 is for the names row
 		subSet[0] = dataSet[0];
 		int exampleCount = 1;
-		for (int j = 1; j < examples; j++) {
-			if (dataSet[j][attr].equals(value)) {
-				subSet[exampleCount] = dataSet[j];
+		for (int i = 1; i < examples; i++) {
+			if (dataSet[i][attr].equals(value)) {
+				subSet[exampleCount] = dataSet[i];
 				exampleCount++;
 			}
 		}
-		Arrays.toString(subSet);
+		/* Ideally this block would also trim out the column of the
+		 * attribute that the dataset is being split on but maybe it
+		 * isn't necessary
+		for (int i = 1; i < examples; i++) {
+			if (dataSet[i][attr].equals(value)) {
+				int colCount = 0;
+				for (int j = 0; j < 
+		}
+		*/
 		return subSet;
+		
 	}// createSubset()
 
 	/**
 	 * Pass the array you want to calculate the entropy of, assumes the class
-	 * is always the last column, at the moment it will take arrays with a varied
-	 * amount of rows, but columns have to be constant - this can be changed obvs
+	 * is always the last column, at the moment it will take arrays with a varying
+	 * number of rows and columns, and will always pull the number of classes
+	 * from the stringCount variable
 	 **/
 	public double calcEntropy(String[][] dataSet) {
-		//pass the array you want testing, will take arrays with fewer rows but atm columns must be intact?
 		double rows = dataSet.length-1;
 		double[] classInstances = new double[stringCount[attributes-1]]; //should always be int[2] in test
 		for (int i = 0; i < stringCount[attributes-1]; i++) {
