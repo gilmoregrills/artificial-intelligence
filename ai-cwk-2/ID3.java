@@ -108,42 +108,60 @@ class ID3 {
 		indexStrings(trainingData);//henceforth I should refer to the data array
 		System.out.println("result of indexStrings:");
 		printStrings();
-		//calculate entropy of entire data set at current time
-		double totalEntropy = calcEntropy(data);	
-		if (totalEntropy == 0) { 
-			//this is a leaf so do something?
-		}
+		
+		double totalEntropy = calcEntropy(data);
 		System.out.println("totalEntropy of this dataset is: "+totalEntropy);	
+		if (totalEntropy == 0) { 
+			//this is a leaf so create a leaf treenode and stahp
+		}	
 		//stores the entropy of a sub-dataset split on a given attribute
 		double[] potentialGain = new double[attributes];
-		int bestAttribute = 1;
-		//NOW, for each attribute not yet split on, do the following:
-		for (int i = 0; i < data[0].length-1; i++) {
-			System.out.println(potentialGain[i]);
+		double[] subSetEntropy;
+		double[] instanceCount;
+		double rows = examples-1;
+		double comparator = 0; 
+		int bestAttribute = 0;
+		
+		//NOW, for each attribute not yet split on, calculate potential information gain
+		for (int i = 0; i < data[0].length-1; i++) {//-1 to avoid testing class
+			System.out.println("Testing attribute: "+i+" which is: "+data[0][i]);
+			//first nested for loop readies the arrays
 			potentialGain[i] = 0;
+			instanceCount = new double[stringCount[i]];
+			subSetEntropy = new double[stringCount[i]];
 			for (int j = 0; j < stringCount[i]; j++) {
-				//for each example
+				//for each potential value of current attribute
 				String[][] subSet = createSubset(data, i, j);
-				//this math is wrong
-				double subSetEntropy = calcEntropy(subSet);
-				potentialGain[i] += subSetEntropy; 
+				subSetEntropy[j] = calcEntropy(subSet);
+			       	instanceCount[j] = attributeInstances(subSet, i, j);
 			}
-			bestAttribute = (potentialGain[i] < bestAttribute) ? i : bestAttribute;
-			System.out.println("information gain of attribute: "+i+" is: "+potentialGain[i]);
+			//second loop calculates information gain
+			potentialGain[i] = totalEntropy;
+			for (int k = 0; k < subSetEntropy.length; k++) { 
+				potentialGain[i] -= (instanceCount[k]/rows*subSetEntropy[k]);
+			}
+			//if this is the highest gain so far, store the attribute index
+			if (potentialGain[i] > comparator) {
+				comparator = potentialGain[i];
+				bestAttribute = i;
+			}
+			System.out.println("information gain of attribute "+data[0][i]+" is: "+potentialGain[i]);
 		}
+		System.out.println("the best attribute was attribute "+bestAttribute+" with a gain of: "+potentialGain[bestAttribute]);
 		//now the potentialGain array is populated with the information gain from each subset
 		//and bestAttribute contains the index of the attribute that gives the most info gain
-		System.out.println("the best attribute was: "+bestAttribute+" which is: "+data[0][bestAttribute]);
+		//System.out.println("the best attribute was: "+bestAttribute+" which is: "+data[0][bestAttribute]);
 		//so I think here is where I should do the tree stuff:
 		//the value for this node should be bestAttribute
 		//the children[] for this node should be the number of unique strings
 		if (decisionTree == null) {
 			//decisionTree = new TreeNode(new TreeNode[attributes[bestAttribute].length], bestAttribute);
 		} else {
-			//iterate through the existing tree until you find a null child spot?? 
+			//iterate through the existing tree until you find a null child spot, create a 
+			//TreeNode there with the value of bestAttribute?
 		}
 		//I should then create subset arrays for each of the possible values of bestAttribute
-		//and call train() on them, this should complete this whole recursive thing??
+		//and call train() on them as the final act of this method?
 	} // train()
 
 	/**
@@ -153,16 +171,8 @@ class ID3 {
 	 **/
 	public String[][] createSubset(String[][] dataSet, int attr, int val) {
 		String value = strings[attr][val];
-		System.out.println("value is: "+value);
-		int attCount = 1;//how many rows the new array should have, can I get 
-				 //this info anywhere else?
-		for (int i = 1; i < examples; i++) {
-			if (dataSet[i][attr].equals(value)) {
-				attCount++;
-			}
-		}
-		System.out.println("there are "+attCount+" instances of this attribute");
-		String[][] subSet = new String[attCount][attributes];
+		int attCount = attributeInstances(dataSet, attr, val);
+		String[][] subSet = new String[attCount+1][attributes];//the +1 is for the names row
 		subSet[0] = dataSet[0];
 		int exampleCount = 1;
 		for (int j = 1; j < examples; j++) {
@@ -185,26 +195,17 @@ class ID3 {
 		double rows = dataSet.length-1;
 		double[] classInstances = new double[stringCount[attributes-1]]; //should always be int[2] in test
 		for (int i = 0; i < stringCount[attributes-1]; i++) {
-		//initial loop loops through each class, inner loop checks for matches against that class
+		//loops through each class, checks number of instances of that class
 			String checkClass = strings[attributes-1][i];
-			for (int j = 1; j <= rows; j++) {
-				String currentRow = dataSet[j][attributes-1];
-				if (currentRow.equals(checkClass)) {
-					//System.out.println("a match!");	
-					classInstances[i]++;
-				}
-				else {
-					//System.out.println("not a match");
-				}
-			}
-		}// loops creating class arrays
-		/**
+			classInstances[i] = attributeInstances(dataSet, attributes-1, i);
+		}
+		/*
 		 * hardcoded version for testing, this will only work on sets with 2 classes:
 		 * double testEntropy;
 		 * testEntropy = (-xlogx(classInstances[0]/rows) -xlogx(classInstances[1]/rows));
 		 * the production version assumes minimum one class, and is essentially appending 
 		 * chunks of math onto the single-class calculation
-		 **/
+		 */
 		double entropy = -xlogx(classInstances[0]/rows);
 		for (int k = 1; k < classInstances.length; k++) {
 			entropy -= (xlogx(classInstances[k]/rows));	
@@ -217,9 +218,15 @@ class ID3 {
 	 * takes a dataset, attribute, and value and returns the number of occurrences 
 	 * in the given dataset.
 	 **/
-	public int attributeInstances(String[][] dataSet) {
-		
-		return 0;	
+	public int attributeInstances(String[][] dataSet, int attr, int val) {
+		int counter = 0; 
+		String value = strings[attr][val];
+		for (int i = 1; i < dataSet.length; i++) {
+			if (dataSet[i][attr].equals(value)) {
+				counter++;
+			}
+		}		
+		return counter;
 	}// attributeInstances
 
 	/** Given a 2-dimensional array containing the training data, numbers each
