@@ -124,7 +124,7 @@ class ID3 {
 	 * that train() should have prepared
 	 **/
 	public void buildTree(TreeNode node, String[][] dataSet) {
-		indexStrings(dataSet);
+		//indexStrings(dataSet);
 		double totalEntropy = calcEntropy(data);
 		System.out.println("totalEntropy of this dataset is: "+totalEntropy);	
 		if (totalEntropy == 0) {
@@ -133,9 +133,11 @@ class ID3 {
 				if (data[1][attributes-1].equals(strings[attributes-1][y])) {
 					leafClass = y;	
 				}
-			}	
+			}
+				
 			node.value = leafClass;
-			node.children = null;	
+			System.out.println("leaf!");
+			//node.children = null;	
 		} else {	
 			//stores the entropy of a sub-dataset split on a given attribute
 			double[] potentialGain = new double[attributes];
@@ -168,7 +170,7 @@ class ID3 {
 					comparator = potentialGain[i];
 					bestAttribute = i;
 				}
-				//System.out.println("information gain of attribute "+data[0][i]+" is: "+potentialGain[i]);
+				System.out.println("information gain of attribute "+data[0][i]+" is: "+potentialGain[i]);
 			}
 	
 			//here is where I create the TreeNode for this subset if it's not a leaf
@@ -185,6 +187,7 @@ class ID3 {
 				node.children[l] = new TreeNode(null, 0);
 				//System.out.println("about to make recursive call on the following array: \n"+Arrays.deepToString(child));
 				buildTree(node.children[l], newSet);
+				System.out.println("blort");
 			}
 
 		}// else
