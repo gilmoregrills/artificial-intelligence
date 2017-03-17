@@ -8,7 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Scanner;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 class ID3 {
 
@@ -107,9 +107,11 @@ class ID3 {
 	} // classify()
 
 	public void train(String[][] trainingData) {
-		indexStrings(trainingData);//henceforth I should refer to the data array
+		indexStrings(trainingData);
 		//System.out.println("result of indexStrings:");
 		printStrings();
+		String[] testArray = attributeValues(trainingData, 2);
+		System.out.println("attributeValues contains: "+Arrays.toString(testArray));
 		decisionTree = new TreeNode(null, 0);
 		System.out.println("decisionTree is: "+decisionTree);
 		buildTree(decisionTree, data);
@@ -156,7 +158,7 @@ class ID3 {
 					//for each potential value of current attribute
 					String[][] subSet = createSubset(data, i, j);
 					subSetEntropy[j] = calcEntropy(subSet);
-				       	instanceCount[j] = attributeInstances(subSet, i, j);
+				       	instanceCount[j] = attributeCounter(subSet, i, j);
 				}
 				//second loop calculates information gain
 				potentialGain[i] = totalEntropy;
@@ -198,7 +200,7 @@ class ID3 {
 	 **/
 	public String[][] createSubset(String[][] dataSet, int attr, int val) {
 		String value = strings[attr][val];
-		int attCount = attributeInstances(dataSet, attr, val);
+		int attCount = attributeCounter(dataSet, attr, val);
 		String[][] subSet = new String[attCount+1][dataSet[0].length-2];//the +1 is for the names row
 		subSet[0] = dataSet[0];
 		int rowCount = 1;
@@ -235,7 +237,7 @@ class ID3 {
 		for (int i = 0; i < stringCount[attributes-1]; i++) {
 		//loops through each class, checks number of instances of that class
 			String checkClass = strings[attributes-1][i];
-			classInstances[i] = attributeInstances(dataSet, attributes-1, i);
+			classInstances[i] = attributeCounter(dataSet, attributes-1, i);
 		}
 		/*
 		 * hardcoded version for testing, this will only work on sets with 2 classes:
@@ -254,9 +256,9 @@ class ID3 {
 	/**
 	 * I've had to do this in two seperate functions now so it deserves its own one
 	 * takes a dataset, attribute, and value and returns the number of occurrences 
-	 * in the given dataset.
+	 * of that specific attribute in the given dataset.
 	 **/
-	public int attributeInstances(String[][] dataSet, int attr, int val) {
+	public int attributeCounter(String[][] dataSet, int attr, int val) {
 		int counter = 0; 
 		String value = strings[attr][val];
 		for (int i = 0; i < dataSet.length-1; i++) {
@@ -265,7 +267,26 @@ class ID3 {
 			}
 		}		
 		return counter;
-	}// attributeInstances
+	}// attributeCounter
+	
+	/**
+	 * this kinda replaces the strings[][] array, and will majorly slow things down
+	 * as I'm likely to be calling on it A LOT
+	 * because I'm chopping off the array columns too I need a method to return to me
+	 * the possible variables in an attribute column, pass a data array in, and you
+	 * get an array containing each possible value
+	 **/
+	public String[] attributeValues(String[][] dataSet, int attr) {
+		ArrayList<String> attVals = new ArrayList<String>();	
+		for (int i = 1; i < dataSet.length; i++) {
+			if (!attVals.contains(dataSet[i][attr])) {
+				System.out.println("value found: "+dataSet[i][attr]);
+				attVals.add(dataSet[i][attr]);
+			}
+		}
+		String[] returnArray = attVals.toArray(new String[0]);
+		return returnArray;	
+	}// attributeValues
 
 	/** Given a 2-dimensional array containing the training data, numbers each
 	 *  unique value that each attribute has, and stores these Strings in
