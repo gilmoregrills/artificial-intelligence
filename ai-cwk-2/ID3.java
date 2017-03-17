@@ -112,7 +112,17 @@ class ID3 {
 		indexStrings(trainingData);//henceforth I should refer to the data array
 		//System.out.println("result of indexStrings:");
 		printStrings();
+		decisionTree = new TreeNode(null, null);
+		buildTree(data, 
 		
+	} // train()
+	/**
+	 * this should take a node and add it to the tree, first node will always
+	 * be root and the rest of the calls will be on the queue of TreeNodes
+	 * that train() should have prepared
+	 **/
+	public void buildTree(TreeNode node, Strings[][] dataSet) {
+		indexStrings(dataSet);
 		double totalEntropy = calcEntropy(data);
 		System.out.println("totalEntropy of this dataset is: "+totalEntropy);	
 		if (totalEntropy == 0) {
@@ -169,18 +179,8 @@ class ID3 {
 			System.out.println("about to make recursive call on the following array: \n"+Arrays.deepToString(child));
 			train(child);
 		}
-	} // train()
-	/**
-	 * this should take a node and add it to the tree, first node will always
-	 * be root and the rest of the calls will be on the queue of TreeNodes
-	 * that train() should have prepared
-	 **/
-	public void buildTree() {
-		//debugging
-		for (TreeNode node : nodeQueue) {
-			System.out.println("here's a node!");
-		}
-		decisionTree = treeBuilder(decisionTree);
+
+	
 	} // buildTree
 	public TreeNode treeBuilder(TreeNode node) {
 		//if (node.children == null) - I'm unsure as to which I should be testing for
