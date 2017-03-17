@@ -63,7 +63,6 @@ class ID3 {
 	private String[][] data;	// Training data indexed by example, attribute
 	private String[][] strings; // Unique strings for each attribute
 	private int[] stringCount;  // Number of unique strings for each attribute
-	private LinkedList<TreeNode> nodeQueue;
 
 	public ID3() {
 		attributes = 0;
@@ -72,7 +71,6 @@ class ID3 {
 		data = null;
 		strings = null;
 		stringCount = null;
-		nodeQueue = new LinkedList<TreeNode>();
 	} // constructor
 	
 	public void printTree() {
@@ -115,7 +113,6 @@ class ID3 {
 		decisionTree = new TreeNode(null, 0);
 		System.out.println("decisionTree is: "+decisionTree);
 		buildTree(decisionTree, data);
-		System.out.println("decisionTree is: "+decisionTree);
 		
 	} // train()
 	/**
@@ -125,18 +122,19 @@ class ID3 {
 	 **/
 	public void buildTree(TreeNode node, String[][] dataSet) {
 		//indexStrings(dataSet);
-		double totalEntropy = calcEntropy(data);
+		double totalEntropy = calcEntropy(dataSet);
 		System.out.println("totalEntropy of this dataset is: "+totalEntropy);	
-		if (totalEntropy == 0) {
+		if (totalEntropy <= 0.5 || dataSet[0].length == 1) {
 			int leafClass = 0;
 			for (int y = 0; y < stringCount[attributes-1]; y++) {
-				if (data[1][attributes-1].equals(strings[attributes-1][y])) {
+				if (dataSet[1][attributes-1].equals(strings[attributes-1][y])) {
 					leafClass = y;	
 				}
 			}
 				
 			node.value = leafClass;
 			System.out.println("leaf!");
+			return;
 			//node.children = null;	
 		} else {	
 			//stores the entropy of a sub-dataset split on a given attribute
@@ -148,8 +146,8 @@ class ID3 {
 			int bestAttribute = 0;
 			
 			//NOW, for each attribute not yet split on, calculate potential information gain
-			for (int i = 0; i < data[0].length-1; i++) {//-1 to avoid testing class
-				System.out.println("Testing attribute: "+i+" which is: "+data[0][i]);
+			for (int i = 0; i < dataSet[0].length-1; i++) {//-1 to avoid testing class
+				System.out.println("Testing attribute: "+i+" which is: "+dataSet[0][i]);
 				//first nested for loop readies the arrays
 				potentialGain[i] = 0;
 				instanceCount = new double[stringCount[i]];
@@ -170,7 +168,7 @@ class ID3 {
 					comparator = potentialGain[i];
 					bestAttribute = i;
 				}
-				System.out.println("information gain of attribute "+data[0][i]+" is: "+potentialGain[i]);
+				System.out.println("information gain of attribute "+dataSet[0][i]+" is: "+potentialGain[i]);
 			}
 	
 			//here is where I create the TreeNode for this subset if it's not a leaf
@@ -183,7 +181,7 @@ class ID3 {
 			//and call train() on them as the final act of this method?
 			for (int l = 0; l < stringCount[bestAttribute]; l++) {
 				System.out.println("about to make recursive call "+l+" ouf of "+stringCount[bestAttribute]);
-				String[][] newSet = createSubset(data, bestAttribute, l);
+				String[][] newSet = createSubset(dataSet, bestAttribute, l);
 				node.children[l] = new TreeNode(null, 0);
 				//System.out.println("about to make recursive call on the following array: \n"+Arrays.deepToString(child));
 				buildTree(node.children[l], newSet);
@@ -192,25 +190,6 @@ class ID3 {
 
 		}// else
 	} // buildTree
-	public TreeNode treeBuilder(TreeNode node) {
-		//if (node.children == null) - I'm unsure as to which I should be testing for
-		//create a TreeNode here?
-		TreeNode returnNode = nodeQueue.remove();
-		if (node  == null) {
-			return returnNode;
-		} 
-		while (!nodeQueue.isEmpty()) {
-			if (returnNode.children != null) {
-				for (TreeNode child : returnNode.children) {
-					treeBuilder(child);
-				}
-			} else {
-				return returnNode;
-			}
-		}
-		return returnNode;
-		//so the final return I think will be the first in the queue
-	} // treeBuilder()
 
 	/**
 	 * Takes an input dataset and returns a dataset trimmed based on a 
@@ -222,11 +201,12 @@ class ID3 {
 		int attCount = attributeInstances(dataSet, attr, val);
 		String[][] subSet = new String[attCount+1][dataSet[0].length-2];//the +1 is for the names row
 		subSet[0] = dataSet[0];
-		int exampleCount = 1;
-		for (int i = 1; i < examples; i++) {
+		int rowCount = 1;
+		int rows = dataSet.length-1;
+		for (int i = 1; i < rows; i++) {
 			if (dataSet[i][attr].equals(value)) {
-				subSet[exampleCount] = dataSet[i];
-				exampleCount++;
+				subSet[rowCount] = dataSet[i];
+				rowCount++;
 			}
 		}
 		/* Ideally this block would also trim out the column of the
@@ -250,6 +230,7 @@ class ID3 {
 	 **/
 	public double calcEntropy(String[][] dataSet) {
 		double rows = dataSet.length-1;
+		double columns = dataSet[0].length-1;
 		double[] classInstances = new double[stringCount[attributes-1]]; //should always be int[2] in test
 		for (int i = 0; i < stringCount[attributes-1]; i++) {
 		//loops through each class, checks number of instances of that class
@@ -278,7 +259,7 @@ class ID3 {
 	public int attributeInstances(String[][] dataSet, int attr, int val) {
 		int counter = 0; 
 		String value = strings[attr][val];
-		for (int i = 1; i < dataSet.length; i++) {
+		for (int i = 0; i < dataSet.length-1; i++) {
 			if (dataSet[i][attr].equals(value)) {
 				counter++;
 			}
