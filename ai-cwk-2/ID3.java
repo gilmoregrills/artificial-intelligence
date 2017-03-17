@@ -123,6 +123,7 @@ class ID3 {
 				}
 			}	
 			nodeQueue.add(new TreeNode(null, leafClass));
+			System.out.println("adding a leaf here");
 			return;	
 		}	
 		//stores the entropy of a sub-dataset split on a given attribute
@@ -135,7 +136,7 @@ class ID3 {
 		
 		//NOW, for each attribute not yet split on, calculate potential information gain
 		for (int i = 0; i < data[0].length-1; i++) {//-1 to avoid testing class
-			System.out.println("Testing attribute: "+i+" which is: "+data[0][i]);
+			//System.out.println("Testing attribute: "+i+" which is: "+data[0][i]);
 			//first nested for loop readies the arrays
 			potentialGain[i] = 0;
 			instanceCount = new double[stringCount[i]];
@@ -161,6 +162,7 @@ class ID3 {
 
 		//here is where I create the TreeNode for this subset if it's not a leaf
 		nodeQueue.add(new TreeNode(new TreeNode[stringCount[bestAttribute]], bestAttribute));
+		System.out.println("adding a node here");
 		
 		//I should then create subset arrays for each of the possible values of bestAttribute
 		//and call train() on them as the final act of this method?
@@ -169,6 +171,7 @@ class ID3 {
 			System.out.println("about to make recursive call on the following array: \n"+Arrays.deepToString(child));
 			train(child);
 		}
+		return;
 	} // train()
 	/**
 	 * this should take a node and add it to the tree, first node will always
@@ -180,25 +183,26 @@ class ID3 {
 		for (TreeNode node : nodeQueue) {
 			System.out.println("here's a node!");
 		}
-		decisionTree = treeBuilder(decisionTree);
+		treeBuilder(decisionTree);
 	} // buildTree
-	public TreeNode treeBuilder(TreeNode node) {
+	public void treeBuilder(TreeNode node) {
 		//if (node.children == null) - I'm unsure as to which I should be testing for
 		//create a TreeNode here?
+		if (nodeQueue.isEmpty()) {
+			return;
+		}
 		TreeNode returnNode = nodeQueue.remove();
 		if (node  == null) {
-			return returnNode;
+			node = returnNode;
 		} 
-		while (!nodeQueue.isEmpty()) {
-			if (returnNode.children != null) {
-				for (TreeNode child : returnNode.children) {
-					treeBuilder(child);
-				}
-			} else {
-				return returnNode;
+		
+		if (returnNode.children != null) {
+			for (TreeNode child : returnNode.children) {
+				treeBuilder(child);
 			}
+		} else {
+			node = returnNode;
 		}
-		return returnNode;
 		//so the final return I think will be the first in the queue
 	} // treeBuilder()
 
