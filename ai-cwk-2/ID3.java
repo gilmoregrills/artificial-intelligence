@@ -112,8 +112,10 @@ class ID3 {
 		indexStrings(trainingData);//henceforth I should refer to the data array
 		//System.out.println("result of indexStrings:");
 		printStrings();
-		decisionTree = new TreeNode(null, null);
-		buildTree(data, 
+		decisionTree = new TreeNode(null, 0);
+		System.out.println("decisionTree is: "+decisionTree);
+		buildTree(decisionTree, data);
+		System.out.println("decisionTree is: "+decisionTree);
 		
 	} // train()
 	/**
@@ -121,7 +123,7 @@ class ID3 {
 	 * be root and the rest of the calls will be on the queue of TreeNodes
 	 * that train() should have prepared
 	 **/
-	public void buildTree(TreeNode node, Strings[][] dataSet) {
+	public void buildTree(TreeNode node, String[][] dataSet) {
 		indexStrings(dataSet);
 		double totalEntropy = calcEntropy(data);
 		System.out.println("totalEntropy of this dataset is: "+totalEntropy);	
@@ -132,55 +134,60 @@ class ID3 {
 					leafClass = y;	
 				}
 			}	
-			nodeQueue.add(new TreeNode(null, leafClass));
-			return;	
-		}	
-		//stores the entropy of a sub-dataset split on a given attribute
-		double[] potentialGain = new double[attributes];
-		double[] subSetEntropy;
-		double[] instanceCount;
-		double rows = examples-1;
-		double comparator = 0; 
-		int bestAttribute = 0;
-		
-		//NOW, for each attribute not yet split on, calculate potential information gain
-		for (int i = 0; i < data[0].length-1; i++) {//-1 to avoid testing class
-			System.out.println("Testing attribute: "+i+" which is: "+data[0][i]);
-			//first nested for loop readies the arrays
-			potentialGain[i] = 0;
-			instanceCount = new double[stringCount[i]];
-			subSetEntropy = new double[stringCount[i]];
-			for (int j = 0; j < stringCount[i]; j++) {
-				//for each potential value of current attribute
-				String[][] subSet = createSubset(data, i, j);
-				subSetEntropy[j] = calcEntropy(subSet);
-			       	instanceCount[j] = attributeInstances(subSet, i, j);
+			node.value = leafClass;
+			node.children = null;	
+		} else {	
+			//stores the entropy of a sub-dataset split on a given attribute
+			double[] potentialGain = new double[attributes];
+			double[] subSetEntropy;
+			double[] instanceCount;
+			double rows = examples-1;
+			double comparator = 0; 
+			int bestAttribute = 0;
+			
+			//NOW, for each attribute not yet split on, calculate potential information gain
+			for (int i = 0; i < data[0].length-1; i++) {//-1 to avoid testing class
+				System.out.println("Testing attribute: "+i+" which is: "+data[0][i]);
+				//first nested for loop readies the arrays
+				potentialGain[i] = 0;
+				instanceCount = new double[stringCount[i]];
+				subSetEntropy = new double[stringCount[i]];
+				for (int j = 0; j < stringCount[i]; j++) {
+					//for each potential value of current attribute
+					String[][] subSet = createSubset(data, i, j);
+					subSetEntropy[j] = calcEntropy(subSet);
+				       	instanceCount[j] = attributeInstances(subSet, i, j);
+				}
+				//second loop calculates information gain
+				potentialGain[i] = totalEntropy;
+				for (int k = 0; k < subSetEntropy.length; k++) { 
+					potentialGain[i] -= (instanceCount[k]/rows*subSetEntropy[k]);
+				}
+				//if this is the highest gain so far, store the attribute index
+				if (potentialGain[i] > comparator) {
+					comparator = potentialGain[i];
+					bestAttribute = i;
+				}
+				//System.out.println("information gain of attribute "+data[0][i]+" is: "+potentialGain[i]);
 			}
-			//second loop calculates information gain
-			potentialGain[i] = totalEntropy;
-			for (int k = 0; k < subSetEntropy.length; k++) { 
-				potentialGain[i] -= (instanceCount[k]/rows*subSetEntropy[k]);
-			}
-			//if this is the highest gain so far, store the attribute index
-			if (potentialGain[i] > comparator) {
-				comparator = potentialGain[i];
-				bestAttribute = i;
-			}
-			//System.out.println("information gain of attribute "+data[0][i]+" is: "+potentialGain[i]);
-		}
-
-		//here is where I create the TreeNode for this subset if it's not a leaf
-		nodeQueue.add(new TreeNode(new TreeNode[stringCount[bestAttribute]], bestAttribute));
-		
-		//I should then create subset arrays for each of the possible values of bestAttribute
-		//and call train() on them as the final act of this method?
-		for (int l = 0; l < stringCount[bestAttribute]; l++) {
-			String[][] child = createSubset(data, bestAttribute, l);
-			System.out.println("about to make recursive call on the following array: \n"+Arrays.deepToString(child));
-			train(child);
-		}
-
 	
+			//here is where I create the TreeNode for this subset if it's not a leaf
+			System.out.println("the best attribute to split on is: "+bestAttribute+" it has "+stringCount[bestAttribute]+" children");
+			node.value = bestAttribute;
+			node.children = new TreeNode[stringCount[bestAttribute]];
+	
+			
+			//I should then create subset arrays for each of the possible values of bestAttribute
+			//and call train() on them as the final act of this method?
+			for (int l = 0; l < stringCount[bestAttribute]; l++) {
+				System.out.println("about to make recursive call "+l+" ouf of "+stringCount[bestAttribute]);
+				String[][] newSet = createSubset(data, bestAttribute, l);
+				node.children[l] = new TreeNode(null, 0);
+				//System.out.println("about to make recursive call on the following array: \n"+Arrays.deepToString(child));
+				buildTree(node.children[l], newSet);
+			}
+
+		}// else
 	} // buildTree
 	public TreeNode treeBuilder(TreeNode node) {
 		//if (node.children == null) - I'm unsure as to which I should be testing for
@@ -351,7 +358,6 @@ class ID3 {
 		ID3 classifier = new ID3();
 		System.out.println("debugging! We just instantiated classifier");
 		classifier.train(trainingData);
-		classifier.buildTree();
 		classifier.printTree();
 		classifier.classify(testData);
 	} // main()
