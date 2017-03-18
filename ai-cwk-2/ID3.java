@@ -127,11 +127,11 @@ class ID3 {
 		double totalEntropy = calcEntropy(dataSet);
 		System.out.println("totalEntropy of this dataset is: "+totalEntropy);	
 		if (totalEntropy <= 0.5 || dataSet[0].length == 1) {
+			String[] classes = attributeValues(dataSet, dataSet.length-1);//hopefully right
+			int[] classCount = new int[classes.length-1];		
 			int leafClass = 0;
-			for (int y = 0; y < stringCount[attributes-1]; y++) {
-				if (dataSet[1][attributes-1].equals(strings[attributes-1][y])) {
-					leafClass = y;	
-				}
+			for (int y = 0; y < classCount.length; y++) {
+				classCount[y] = attributeCounter(dataSet, dataSet.length-1, y);	
 			}
 				
 			node.value = leafClass;
@@ -259,8 +259,9 @@ class ID3 {
 	 * of that specific attribute in the given dataset.
 	 **/
 	public int attributeCounter(String[][] dataSet, int attr, int val) {
-		int counter = 0; 
-		String value = strings[attr][val];
+		int counter = 0;
+		String[] values = attributeValues(dataSet, attr);
+		String value = values[val];
 		for (int i = 0; i < dataSet.length-1; i++) {
 			if (dataSet[i][attr].equals(value)) {
 				counter++;
