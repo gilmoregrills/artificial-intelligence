@@ -64,6 +64,7 @@ class ID3 {
 	private String[][] strings; // Unique strings for each attribute
 	private int[] stringCount;  // Number of unique strings for each attribute
 	private String checked;
+	private String[] headings;
 
 	public ID3() {
 		attributes = 0;
@@ -73,6 +74,7 @@ class ID3 {
 		strings = null;
 		stringCount = null;
 		checked = "checked";
+		headings = null;
 	} // constructor
 	
 	public void printTree() {
@@ -112,11 +114,16 @@ class ID3 {
 		indexStrings(trainingData);
 		//System.out.println("result of indexStrings:");
 		printStrings();
-		System.out.println(Arrays.deepToString(strings));
-		String[] testArray = attributeValues(trainingData, 2);
+		headings = trainingData[0];
 		decisionTree = new TreeNode(null, 0);
-		System.out.println("decisionTree is: "+decisionTree);
-		buildTree(decisionTree, data);
+		String[][] dataCopy = trainingData;
+		System.out.println(Arrays.deepToString(trainingData));
+		System.out.println(Arrays.deepToString(data));
+		System.out.println(Arrays.deepToString(dataCopy));
+		buildTree(decisionTree, dataCopy);
+		data[0] = headings;
+		System.out.println(Arrays.deepToString(trainingData));
+		System.out.println(Arrays.deepToString(data));
 		
 	} // train()
 	/**
