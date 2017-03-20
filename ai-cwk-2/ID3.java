@@ -108,12 +108,16 @@ class ID3 {
 		//as the class (final position of each row array)
 	} // classify()
 
+	void climbTree(String[][] dataSet, TreeNode node) {
+
+	}//climbTree
+
 	public void train(String[][] trainingData) {
 		indexStrings(trainingData);
 		printStrings();
 		String[] checkList = data[0].clone();
 		decisionTree = new TreeNode(null, 0);
-		buildTree(decisionTree, data, checkList);;
+		growTree(decisionTree, data, checkList);;
 
 
 	} // train()
@@ -137,7 +141,7 @@ class ID3 {
 	 * -work out exactly why the calcentropy/information gain blocks sometimes return NaN, 
 	 *  current solution is just a workaround
 	 **/
-	private void buildTree(TreeNode node, String[][] dataSet, String[] checkList) {
+	void growTree(TreeNode node, String[][] dataSet, String[] checkList) {
 		//start by calculating the entropy of the current subset
 		double totalEntropy = calcEntropy(dataSet);
 		System.out.println("totalEntropy of this dataset is: "+totalEntropy);	
@@ -201,7 +205,7 @@ class ID3 {
 			return;
 		} else {
 			//if it's not a leaf then split on the best attribute, create a treenode
-			//and make a call buildTree again, passing each of those 
+			//and make a call growTree again, passing each of those 
 			System.out.println("THE BEST attribute to split on is: "+dataSet[0][bestAttribute]+" with an information gain of: "+potentialGain[bestAttribute]);
 			node.value = bestAttribute;
 			node.children = new TreeNode[stringCount[bestAttribute]];
@@ -215,11 +219,11 @@ class ID3 {
 				System.out.println("Making recursive call "+l+" ouf of "+stringCount[bestAttribute]+
 								   ", splitting on: "+dataSet[0][bestAttribute]+" = "+strings[bestAttribute][l]+
 								   "\nThis produces the following array: \n"+Arrays.deepToString(newSet));
-				buildTree(node.children[l], newSet, subCheckList);
+				growTree(node.children[l], newSet, subCheckList);
 				
 			}
 		}// else
-	} // buildTree
+	} // growTree
 
 	boolean isChecked(String[] headings) {
 		int counter = 0;
