@@ -64,7 +64,6 @@ class ID3 {
 	private String[][] strings; // Unique strings for each attribute
 	private int[] stringCount;  // Number of unique strings for each attribute
 	private String checked;
-	private String[] checkList;
 
 	public ID3() {
 		attributes = 0;
@@ -74,7 +73,6 @@ class ID3 {
 		strings = null;
 		stringCount = null;
 		checked = "checked";
-		checkList = null;
 	} // constructor
 	
 	public void printTree() {
@@ -113,16 +111,23 @@ class ID3 {
 	public void train(String[][] trainingData) {
 		indexStrings(trainingData);
 		printStrings();
-		checkList = data[0].clone();
+		String[] checkList = data[0].clone();
 		decisionTree = new TreeNode(null, 0);
-		buildTree(decisionTree, data);;
+		buildTree(decisionTree, data, checkList);;
 
 
 	} // train()
 	/**
-	 * this should take a node and add it to the tree, first node will always
-	 * be root and the rest of the calls will be on the queue of TreeNodes
-	 * that train() should have prepared
+	 * Recursive method, takes an array of data and the current TreeNode 
+	 * Each call calculates the information gain from splitting
+	 * on each attribute, splitting the dataset on the best attribute then calling
+	 * itself on each resulting subset and child TreeNode
+	 * If the dataset is to be split, current TreeNode's value is set to that of
+	 * the best attribute, and a children array with indexes equal to the number 
+	 * potential values the attribute can hold
+	 * If the entropy of the dataset is 0, or there are no more attributes to split
+	 * on, a leaf has been reached - a TreeNode is created accordingly, and the 
+	 * method returns 
 	 **/
 	/**
 	 * TO DO:
@@ -131,13 +136,11 @@ class ID3 {
 	 *  totalEntropy/isChecked 
 	 * -work out exactly why the calcentropy/information gain blocks sometimes return NaN, 
 	 *  current solution is just a workaround
-	 * -fix weird tree attribute names
 	 **/
-	private void buildTree(TreeNode node, String[][] dataSet) {
-		//indexStrings(dataSet);
+	private void buildTree(TreeNode node, String[][] dataSet, String[] checkList) {
+		//start by calculating the entropy of the current subset
 		double totalEntropy = calcEntropy(dataSet);
 		System.out.println("totalEntropy of this dataset is: "+totalEntropy);	
-		//stores the entropy of a sub-dataset split on a given attribute
 		double[] potentialGain = new double[attributes];
 		double[] subSetEntropy;
 		double[] instanceCount;
@@ -153,28 +156,28 @@ class ID3 {
 				potentialGain[i] = 0;
 			} else {
 				//first nested for loop readies the arrays
-				potentialGain[i] = 0;
+				//potentialGain[i] = 0;
 				instanceCount = new double[stringCount[i]];
 				subSetEntropy = new double[stringCount[i]];
 				for (int j = 0; j < stringCount[i]; j++) {
-				//for each potential value of current attribute	
+				//for each potential value of current attr, make a subset,
+				//calculate entropy, get the number of instances of the subset
 					String[][] subSet = createSubset(dataSet, i, j);
 					subSetEntropy[j] = calcEntropy(subSet);
-			       	instanceCount[j] = attributeCounter(subSet, i, j);
-			       	//System.out.println(Arrays.deepToString(subSet));
+			       		instanceCount[j] = attributeCounter(subSet, i, j);
 				}
 				//second loop calculates information gain
 				potentialGain[i] = totalEntropy;
 				for (int k = 0; k < subSetEntropy.length; k++) {	
 					potentialGain[i] -= (instanceCount[k]/rows*subSetEntropy[k]);
 				}
-				//workaround for a current problem, not permanent - fix math error
+				//workaround for a current problem, ideally not permanent - hard to diagnose math error
 				if (Double.isNaN(potentialGain[i])) {
 					potentialGain[i] = 0;
 				}
 				potentialGain[i] = Math.abs(potentialGain[i]);
 				//if this is the highest gain so far, store the attribute index
-				if (potentialGain[i] > comparator) {
+				if (potentialGain[i] >= comparator && !checkList[i].equals(checked)) {
 					comparator = potentialGain[i];
 					bestAttribute = i;
 				}
@@ -182,39 +185,38 @@ class ID3 {
 
 			}
 		}
-		//if it's a leaf, the class is the the most common attribute in class column of the subset
-		if (totalEntropy <= 0.0 || totalEntropy == -0.0 || isChecked(checkList) || dataSet.length == 1) {
+		//if the current dataset meets any of the leaf criteria, the class is the most common 
+		//attribute in the class column of the subset
+		if (totalEntropy <= 0.0 ||  isChecked(checkList) || dataSet.length == 1) {
 			int leafClass = 0;
 			int instances = 0;
-			if (dataSet.length != 1) {
-				for (int y = 0; y < stringCount[attributes-1]; y++) {
-					if (instances < attributeCounter(dataSet, dataSet[0].length-1, y)) {
-						instances = attributeCounter(dataSet, dataSet[0].length-1, y);
-						leafClass = y;
-					}
+			for (int y = 0; y < stringCount[attributes-1]; y++) {
+				if (instances < attributeCounter(dataSet, dataSet[0].length-1, y)) {
+					instances = attributeCounter(dataSet, dataSet[0].length-1, y);
+					leafClass = y;
 				}
-				node.value = leafClass;
-			} else {				
-				node.value = leafClass;
-			//node.children = null;	
 			}
+			node.value = leafClass;	
 			System.out.println("leaf!");
 			return;
 		} else {
 			//if it's not a leaf then split on the best attribute, create a treenode
 			//and make a call buildTree again, passing each of those 
-			System.out.println("THE BEST attribute to split on is: "+dataSet[0][bestAttribute]+" it is "+potentialGain[bestAttribute]);
+			System.out.println("THE BEST attribute to split on is: "+dataSet[0][bestAttribute]+" with an information gain of: "+potentialGain[bestAttribute]);
 			node.value = bestAttribute;
 			node.children = new TreeNode[stringCount[bestAttribute]];
 
 			for (int l = 0; l < stringCount[bestAttribute]; l++) {
 				String[][] newSet = createSubset(dataSet, bestAttribute, l);
-				checkList[bestAttribute] = checked;
+				String[] subCheckList = checkList.clone();
+				subCheckList[bestAttribute] = checked;
+				System.out.println("checkList is currently: "+Arrays.toString(checkList));
 				node.children[l] = new TreeNode(null, 0);
 				System.out.println("Making recursive call "+l+" ouf of "+stringCount[bestAttribute]+
 								   ", splitting on: "+dataSet[0][bestAttribute]+" = "+strings[bestAttribute][l]+
 								   "\nThis produces the following array: \n"+Arrays.deepToString(newSet));
-				buildTree(node.children[l], newSet);
+				buildTree(node.children[l], newSet, subCheckList);
+				
 			}
 		}// else
 	} // buildTree
@@ -261,27 +263,17 @@ class ID3 {
 	 **/
 	double calcEntropy(String[][] dataSet) {
 		double rows = dataSet.length-1;
-		double columns = dataSet[0].length-1;
 		double[] classInstances = new double[stringCount[attributes-1]]; //should always be int[2] in test
 		for (int i = 0; i < stringCount[attributes-1]; i++) {
 		//loops through each class, checks number of instances of that class
-			String checkClass = strings[attributes-1][i];
 			classInstances[i] = attributeCounter(dataSet, attributes-1, i);
 		}
-		/*
-		 * hardcoded version for testing, this will only work on sets with 2 classes:
-		 * double testEntropy;
-		 * testEntropy = (-xlogx(classInstances[0]/rows) -xlogx(classInstances[1]/rows));
-		 * the production version assumes minimum one class, and is essentially appending 
-		 * chunks of math onto the single-class calculation
-		 */
+		//this assumes minimum one class, and is essentially appending 
+		//chunks of math onto the single-class calculation
 		double entropy = -xlogx(classInstances[0]/rows);
-		//System.out.println(classInstances[0]+" log2 "+rows);
 		for (int k = 1; k < classInstances.length; k++) {
 			entropy -= (xlogx(classInstances[k]/rows));
-		//	System.out.println(classInstances[k]+" log2 "+rows);	
 		}
-		//System.out.println("entropy = "+entropy);
 		return Math.abs(entropy);	
 	}// calcEntropy
 
@@ -291,7 +283,6 @@ class ID3 {
 	 * of that specific attribute in the given dataset.
 	 **/
 	int attributeCounter(String[][] dataSet, int attr, int val) {
-		//System.out.println(Arrays.deepToString(dataSet));
 		int counter = 0; 
 		String value = strings[attr][val];
 		if (dataSet.length == 1) {
@@ -304,24 +295,6 @@ class ID3 {
 		}		
 		return counter;
 	}// attributeCounter
-	
-	/**
-	 * this kinda replaces the strings[][] array, and will majorly slow things down
-	 * as I'm likely to be calling on it A LOT
-	 * because I'm chopping off the array columns too I need a method to return to me
-	 * the possible variables in an attribute column, pass a data array in, and you
-	 * get an array containing each possible value
-	 **/
-	String[] attributeValues(String[][] dataSet, int attr) {
-		ArrayList<String> attVals = new ArrayList<String>();	
-		for (int i = 1; i < dataSet.length; i++) {
-			if (!attVals.contains(dataSet[i][attr])) {
-				attVals.add(dataSet[i][attr]);
-			}
-		}
-		String[] returnArray = attVals.toArray(new String[0]);
-		return returnArray;	
-	}// attributeValues
 
 	/** Given a 2-dimensional array containing the training data, numbers each
 	 *  unique value that each attribute has, and stores these Strings in
