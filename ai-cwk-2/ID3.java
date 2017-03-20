@@ -104,12 +104,44 @@ class ID3 {
 		//of decisionTree
 		//next split data based on the value of each child of decisionTree
 		//in turn?
-		//once you reach a leaf node (value == attributes), assign that value
-		//as the class (final position of each row array)
+		//once you reach a leaf node (where children = null), assign that value
+		//from strings as the class (final position of each row array
+		//map trainingDataArray to new Array[trainingData.length][trainingData[0].length+1];
+		//to leave a spot free for the class
+		printTree();
+		for (int i = 1; i < testData.length; i++) {
+			climbTree(testData[i], decisionTree);
+			System.out.println(testData[i][testData[0].length-1]);
+		}
+		System.out.println("classified af:\n"+Arrays.deepToString(testData));
 	} // classify()
-
-	void climbTree(String[][] dataSet, TreeNode node) {
-
+	/**
+	 *This should take an unclassified dataSet and the current TreeNode, and 
+	 *recurse through the tree until it finds a leaf, assigning the value that
+	 *leaf represents to the appropriate rows
+	 *TO DO:
+	 *
+	 **/
+	void climbTree(String[] dataSetRow, TreeNode node) {
+		System.out.println("the row that's currently being classified is: "+Arrays.toString(dataSetRow));
+		if (node.children == null) {
+			System.out.println("found a leaf! Class is: "+strings[strings.length-1][node.value]);
+			dataSetRow[dataSetRow.length-1] = strings[strings.length-1][node.value];
+			return;
+		} else {
+			int childAttribute = 0;
+			for (int i = 0; i < node.children.length; i++) {
+				System.out.println("checking if value of this attribute is: "+strings[node.value][i]);
+				System.out.println("the value is: "+dataSetRow[node.value]);
+				if (strings[node.value][i].equals(dataSetRow[node.value])) {
+					childAttribute = i;
+					System.out.println("yep!");
+				} else {
+					System.out.println("nope");
+				}
+			}
+			climbTree(dataSetRow, node.children[childAttribute]);
+		}
 	}//climbTree
 
 	public void train(String[][] trainingData) {
@@ -118,8 +150,6 @@ class ID3 {
 		String[] checkList = data[0].clone();
 		decisionTree = new TreeNode(null, 0);
 		growTree(decisionTree, data, checkList);;
-
-
 	} // train()
 	/**
 	 * Recursive method, takes an array of data and the current TreeNode 
@@ -134,12 +164,10 @@ class ID3 {
 	 * method returns 
 	 **/
 	/**
-	 * TO DO:
-	 * -swap the execution of the main if/else to account for times where the information gain of
-	 *  every split is 0 (if all are 0, set all columns to "checked", before geting to the if
-	 *  totalEntropy/isChecked 
+	 * TO DO: 
 	 * -work out exactly why the calcentropy/information gain blocks sometimes return NaN, 
 	 *  current solution is just a workaround
+	 * -potentially a couple blocks around so that the if-leaf conditional comes first
 	 **/
 	void growTree(TreeNode node, String[][] dataSet, String[] checkList) {
 		//start by calculating the entropy of the current subset
