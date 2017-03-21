@@ -100,44 +100,33 @@ class ID3 {
 	public void classify(String[][] testData) {
 		if (decisionTree == null)
 			error("Please run training phase before classification");
-		//split data based on the attribute that corresponds to the VALUE
-		//of decisionTree
-		//next split data based on the value of each child of decisionTree
-		//in turn?
-		//once you reach a leaf node (where children = null), assign that value
-		//from strings as the class (final position of each row array
-		//map trainingDataArray to new Array[trainingData.length][trainingData[0].length+1];
-		//to leave a spot free for the class
-		printTree();
 		for (int i = 1; i < testData.length; i++) {
 			climbTree(testData[i], decisionTree);
-			System.out.println(testData[i][testData[0].length-1]);
+			//System.out.println(testData[i][testData[0].length-1]);
 		}
-		System.out.println("classified af:\n"+Arrays.deepToString(testData));
+		//System.out.println("classified af:\n"+Arrays.deepToString(testData));
 	} // classify()
 	/**
-	 *This should take an unclassified dataSet and the current TreeNode, and 
-	 *recurse through the tree until it finds a leaf, assigning the value that
+	 *This should take an unclassified row of a dataset and the current TreeNode, 
+	 *recurses through the tree until it finds a leaf, and assigns the value that
 	 *leaf represents to the appropriate rows
-	 *TO DO:
-	 *
 	 **/
 	void climbTree(String[] dataSetRow, TreeNode node) {
-		System.out.println("the row that's currently being classified is: "+Arrays.toString(dataSetRow));
+		//System.out.println("the row that's currently being classified is: "+Arrays.toString(dataSetRow));
 		if (node.children == null) {
-			System.out.println("found a leaf! Class is: "+strings[strings.length-1][node.value]);
+			System.out.println(strings[strings.length-1][node.value]);
 			dataSetRow[dataSetRow.length-1] = strings[strings.length-1][node.value];
 			return;
 		} else {
 			int childAttribute = 0;
 			for (int i = 0; i < node.children.length; i++) {
-				System.out.println("checking if value of this attribute is: "+strings[node.value][i]);
-				System.out.println("the value is: "+dataSetRow[node.value]);
+				//System.out.println("checking if value of this attribute is: "+strings[node.value][i]);
+				//System.out.println("the value is: "+dataSetRow[node.value]);
 				if (strings[node.value][i].equals(dataSetRow[node.value])) {
 					childAttribute = i;
-					System.out.println("yep!");
+					//System.out.println("yep!");
 				} else {
-					System.out.println("nope");
+					//System.out.println("nope");
 				}
 			}
 			climbTree(dataSetRow, node.children[childAttribute]);
@@ -146,7 +135,7 @@ class ID3 {
 
 	public void train(String[][] trainingData) {
 		indexStrings(trainingData);
-		printStrings();
+		//`printStrings();
 		String[] checkList = data[0].clone();
 		decisionTree = new TreeNode(null, 0);
 		growTree(decisionTree, data, checkList);;
@@ -172,7 +161,7 @@ class ID3 {
 	void growTree(TreeNode node, String[][] dataSet, String[] checkList) {
 		//start by calculating the entropy of the current subset
 		double totalEntropy = calcEntropy(dataSet);
-		System.out.println("totalEntropy of this dataset is: "+totalEntropy);	
+		//System.out.println("totalEntropy of this dataset is: "+totalEntropy);	
 		double[] potentialGain = new double[attributes];
 		double[] subSetEntropy;
 		double[] instanceCount;
@@ -182,9 +171,9 @@ class ID3 {
 			
 		//for each attribute not yet split on, calculate potential information gain
 		for (int i = 0; i < dataSet[0].length-1; i++) {//-1 to avoid testing class
-			System.out.println("		Testing attribute: "+i+" which is: "+dataSet[0][i]);
+			//System.out.println("		Testing attribute: "+i+" which is: "+dataSet[0][i]);
 			if (checkList[i].equals(checked)) {
-				System.out.println("			already checked attribute");
+				//System.out.println("			already checked attribute");
 				potentialGain[i] = 0;
 			} else {
 				//first nested for loop readies the arrays
@@ -213,7 +202,7 @@ class ID3 {
 					comparator = potentialGain[i];
 					bestAttribute = i;
 				}
-				System.out.println("			information gain of attribute "+dataSet[0][i]+" is: "+potentialGain[i]);
+				//System.out.println("			information gain of attribute "+dataSet[0][i]+" is: "+potentialGain[i]);
 
 			}
 		}
@@ -229,12 +218,12 @@ class ID3 {
 				}
 			}
 			node.value = leafClass;	
-			System.out.println("leaf!");
+			//System.out.println("leaf!");
 			return;
 		} else {
 			//if it's not a leaf then split on the best attribute, create a treenode
 			//and make a call growTree again, passing each of those 
-			System.out.println("THE BEST attribute to split on is: "+dataSet[0][bestAttribute]+" with an information gain of: "+potentialGain[bestAttribute]);
+			//System.out.println("THE BEST attribute to split on is: "+dataSet[0][bestAttribute]+" with an information gain of: "+potentialGain[bestAttribute]);
 			node.value = bestAttribute;
 			node.children = new TreeNode[stringCount[bestAttribute]];
 
@@ -242,11 +231,11 @@ class ID3 {
 				String[][] newSet = createSubset(dataSet, bestAttribute, l);
 				String[] subCheckList = checkList.clone();
 				subCheckList[bestAttribute] = checked;
-				System.out.println("checkList is currently: "+Arrays.toString(checkList));
+				//System.out.println("checkList is currently: "+Arrays.toString(checkList));
 				node.children[l] = new TreeNode(null, 0);
-				System.out.println("Making recursive call "+l+" ouf of "+stringCount[bestAttribute]+
-								   ", splitting on: "+dataSet[0][bestAttribute]+" = "+strings[bestAttribute][l]+
-								   "\nThis produces the following array: \n"+Arrays.deepToString(newSet));
+				//System.out.println("Making recursive call "+l+" ouf of "+stringCount[bestAttribute]+
+								  // ", splitting on: "+dataSet[0][bestAttribute]+" = "+strings[bestAttribute][l]+
+								  // "\nThis produces the following array: \n"+Arrays.deepToString(newSet));
 				growTree(node.children[l], newSet, subCheckList);
 				
 			}
@@ -271,7 +260,7 @@ class ID3 {
 	 **/
 	String[][] createSubset(String[][] dataSet, int attr, int val) {
 		String value = strings[attr][val];
-		System.out.println("			value is: "+strings[attr][val]);
+		//System.out.println("			value is: "+strings[attr][val]);
 		int attCount = attributeCounter(dataSet, attr, val);
 		String[][] subSet = new String[attCount+1][dataSet[0].length-1];//THIS WAS -2 SHOULD IT BE???
 		int rowCount = 1;
