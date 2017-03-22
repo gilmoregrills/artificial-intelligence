@@ -1,0 +1,14 @@
+Car Type,Fuel Type,Previous Owner,Price Range
+SUV,Petrol,No,High
+Saloon,Diesel,No,Medium
+Saloon,Petrol,Yes,Low
+Sports,Diesel,Yes,Medium
+Hatchback,Diesel,No,Medium
+SUV,Petrol,No,High
+SUV,Petrol,Yes,Medium
+Saloon,Petrol,No,Medium
+Sports,Electric,No,High
+SUV,Diesel,No,High
+Hatchback,Petrol,No,Low
+SUV,Petrol,Yes,Medium
+Saloon,Electric,No,High
