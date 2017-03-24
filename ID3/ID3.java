@@ -95,16 +95,22 @@ class ID3 {
 	} // xlogx()
 
 	/** Execute the decision tree on the given examples in testData, and print
-	 *  the resulting class names, one to a line, for each example in testData.
+	 *  the resulting class names, one to a line, for each example in testData
+	 *  to match the format of the provided .out files
+	 *  Could alternatively add a column onto the right of the array 
 	 **/
 	public void classify(String[][] testData) {
 		if (decisionTree == null)
 			error("Please run training phase before classification");
+		
+		//pass each row of the array to climbTree
+		String[][] classifiedData = testData.clone(); 
 		for (int i = 1; i < testData.length; i++) {
-			climbTree(testData[i], decisionTree);
-			//System.out.println(testData[i][testData[0].length-1]);
+			classifiedData[i] = Arrays.copyOf(testData[i], testData[i].length+1);
+			climbTree(classifiedData[i], decisionTree);
 		}
-		//System.out.println("classified af:\n"+Arrays.deepToString(testData));
+		//originally this just printed the classes, but I couldn't leave it like that
+		//so I've added the classifiedData array so that the data is theoretically useable
 	} // classify()
 	/**
 	 *This should take an unclassified row of a dataset and the current TreeNode, 
@@ -112,7 +118,6 @@ class ID3 {
 	 *leaf represents to the appropriate rows
 	 **/
 	void climbTree(String[] dataSetRow, TreeNode node) {
-		//System.out.println("the row that's currently being classified is: "+Arrays.toString(dataSetRow));
 		if (node.children == null) {
 			System.out.println(strings[strings.length-1][node.value]);
 			dataSetRow[dataSetRow.length-1] = strings[strings.length-1][node.value];
@@ -120,22 +125,18 @@ class ID3 {
 		} else {
 			int childAttribute = 0;
 			for (int i = 0; i < node.children.length; i++) {
-				//System.out.println("checking if value of this attribute is: "+strings[node.value][i]);
-				//System.out.println("the value is: "+dataSetRow[node.value]);
+				//finds the value of the attribute in the row
 				if (strings[node.value][i].equals(dataSetRow[node.value])) {
 					childAttribute = i;
-					//System.out.println("yep!");
-				} else {
-					//System.out.println("nope");
 				}
 			}
+			//call climbTree again on appropriate child node
 			climbTree(dataSetRow, node.children[childAttribute]);
 		}
 	}//climbTree
 
 	public void train(String[][] trainingData) {
 		indexStrings(trainingData);
-		//`printStrings();
 		String[] checkList = data[0].clone();
 		decisionTree = new TreeNode(null, 0);
 		growTree(decisionTree, data, checkList);;
@@ -261,7 +262,7 @@ class ID3 {
 	String[][] createSubset(String[][] dataSet, int attr, int val) {
 		String value = strings[attr][val];
 		int attCount = attributeCounter(dataSet, attr, val);
-		String[][] subSet = new String[attCount+1][dataSet[0].length-1];//THIS WAS -2 SHOULD IT BE???
+		String[][] subSet = new String[attCount+1][dataSet[0].length-1];
 		int rowCount = 1;
 		int rows = dataSet.length;
 		subSet[0] = dataSet[0];
@@ -312,8 +313,7 @@ class ID3 {
 		for (int k = 1; k < classInstances.length; k++) {
 			entropy -= (xlogx(classInstances[k]/rows));
 		}	
-		System.out.println(Math.abs(entropy));
-		return Math.abs(entropy);	
+		return Math.abs(entropy);//sometimes returned -0.0 so Math.abs() forces positives	
 	}// calcEntropy
 
 	/**
