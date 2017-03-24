@@ -109,13 +109,13 @@ class ID3 {
 			classifiedData[i] = Arrays.copyOf(testData[i], testData[i].length+1);
 			climbTree(classifiedData[i], decisionTree);
 		}
-		//originally this just printed the classes, but I couldn't leave it like that
+		//originally this just printed the classes, but I couldn't just leave it like that
 		//so I've added the classifiedData array so that the data is theoretically useable
 	} // classify()
+
 	/**
 	 *This should take an unclassified row of a dataset and the current TreeNode, 
-	 *recurses through the tree until it finds a leaf, and assigns the value that
-	 *leaf represents to the appropriate rows
+	 *recurses through the tree until it finds a leaf, and assigns that leaf's value
 	 **/
 	void climbTree(String[] dataSetRow, TreeNode node) {
 		if (node.children == null) {
@@ -133,10 +133,12 @@ class ID3 {
 			//call climbTree again on appropriate child node
 			climbTree(dataSetRow, node.children[childAttribute]);
 		}
-	}//climbTree
+	} // climbTree()
 
 	public void train(String[][] trainingData) {
 		indexStrings(trainingData);
+		//checkList is a clone of the first row of trainingData and 
+		//will keep track of which attributes have been split on
 		String[] checkList = data[0].clone();
 		decisionTree = new TreeNode(null, 0);
 		growTree(decisionTree, data, checkList);;
@@ -148,17 +150,15 @@ class ID3 {
 	 * on each attribute, splitting the dataset on the best attribute then calling
 	 * itself on each resulting subset and child TreeNode
 	 * If the dataset is to be split, current TreeNode's value is set to that of
-	 * the best attribute, and a children array with indexes equal to the number 
-	 * potential values the attribute can hold
+	 * the best attribute, and the children array is instantiated with indexes equal
+	 * to the number of potential values the attribute can hold
 	 * If the entropy of the dataset is 0, or there are no more attributes to split
 	 * on, a leaf has been reached - a TreeNode is created accordingly, and the 
 	 * method returns 
 	 **/
-
 	void growTree(TreeNode node, String[][] dataSet, String[] checkList) {
 		//start by calculating the entropy of the current subset
-		double totalEntropy = calcEntropy(dataSet);
-		
+		double totalEntropy = calcEntropy(dataSet);	
 		//get all the variables I'll need set		
 		double[] potentialGain = new double[attributes];
 		double[] subSetEntropy;
@@ -200,22 +200,21 @@ class ID3 {
 					potentialGain[i] = totalEntropy;
 					double tmp = 0;
 					for (int k = 0; k < subSetEntropy.length; k++) {	
-						//remove this conditional if needs be
+						//if the subset is empty it returns NaN, so check for that
 						tmp = (instanceCount[k]/rows*subSetEntropy[k]);
 						if (!Double.isNaN(tmp)) {
 							potentialGain[i] -= tmp;						
 						}
 					}
-					potentialGain[i] = Math.abs(potentialGain[i]);//an extra check to make sure there's no negatives
+					potentialGain[i] = Math.abs(potentialGain[i]);
 					//if this is the highest gain so far, store the attribute index
 					if (potentialGain[i] >= comparator && !checkList[i].equals(checked)) {
 						comparator = potentialGain[i];
 						bestAttribute = i;
-					}
-	
+					}	
 				}
 			}
-			//if it's not a leaf then split on the best attribute, create a treenode
+			//it's not a leaf so split on the best attribute, create a treenode
 			//and make a call growTree again, passing each of those 
 			node.value = bestAttribute;
 			node.children = new TreeNode[stringCount[bestAttribute]];
@@ -231,18 +230,20 @@ class ID3 {
 				} else {
 					//in the case that the split dataset has no rows, instead I
 					//pass the dataset pre-split, but with all the attributes
-					//set to checked, to indicate that a leaf should be created
-					//based on the majority class of that set
+					//set to checked to force a leaf
 					for (int m = 0; m < subCheckList.length-1; m++) {
 						subCheckList[m] = checked;
 					}
 					growTree(node.children[l], dataSet, subCheckList);
-				}
-				
+				}	
 			}
 		}
-	}//growTree
+	} // growTree()
 
+	/**
+	 * Returns true if all of the headings in the checkList array have 
+	 * been marked as true (not including the class heading)
+	 **/
 	boolean isChecked(String[] headings) {
 		int counter = 0;
 		for (int i = 0; i < headings.length-1; i++) {
@@ -252,7 +253,7 @@ class ID3 {
 		}
 		boolean returnValue = (counter == headings.length-1) ? true : false;
 		return returnValue;
-	}// isChecked
+	} // isChecked()
 
 	/**
 	 * Takes an input dataset and returns a dataset trimmed based on a 
@@ -274,7 +275,7 @@ class ID3 {
 		}
 		return subSet;
 		
-	}// createSubset()
+	} // createSubset()
 
 	/**
 	 * Pass the array you want to calculate the entropy of, assumes the class
@@ -289,32 +290,15 @@ class ID3 {
 		//loops through each class, checks number of instances of that class
 			classInstances[i] = attributeCounter(dataSet, attributes-1, i);
 		}
-		/*
-		//used this very long-winded version over the slightly hacky one below
-		//mostly because it seems more correct because it avoids use of Math.abs() 
-		//to convert the -0.0 it sometimes returns
-		double[] divisions = new double[classInstances.length];
-		for (int j = 0; j < divisions.length; j++) {
-			divisions[j] = (classInstances[j]/rows);
-		}
-
-		double[] logging = new double[classInstances.length];
-		for (int k = 0; k < logging.length; k++) {
-			logging[k] = -xlogx(divisions[k]);
-		}
-		double entropy = 0;
-		for (int l = 0; l < logging.length; l++) {
-			if (logging[l] != 0.0) {
-				entropy += logging[l];
-			}
-		}
-		*/	
+		//do the entropy calculation! There must be a minimum of one class
+		//for this to work, first call to xlogx is hardcoded then each
+		//additional call is tacked onto that 	
 		double entropy = -xlogx(classInstances[0]/rows);
 		for (int k = 1; k < classInstances.length; k++) {
 			entropy -= (xlogx(classInstances[k]/rows));
 		}	
 		return Math.abs(entropy);//sometimes returned -0.0 so Math.abs() forces positives	
-	}// calcEntropy
+	} // calcEntropy()
 
 	/**
 	 * I've had to do this in two seperate functions now so it deserves its own one
@@ -333,7 +317,7 @@ class ID3 {
 			}
 		}		
 		return counter;
-	}// attributeCounter
+	} // attributeCounter()
 
 	/** Given a 2-dimensional array containing the training data, numbers each
 	 *  unique value that each attribute has, and stores these Strings in
@@ -368,8 +352,7 @@ class ID3 {
 			for (int index = 0; index < stringCount[attr]; index++)
 				System.out.println(data[0][attr] + " value " + index +
 									" = " + strings[attr][index]);
-	} // printStrings()
-		
+	} // printStrings()	
 	/** Reads a text file containing a fixed number of comma-separated values
 	 *  on each line, and returns a two dimensional array of these values,
 	 *  indexed by line number and position in line.
