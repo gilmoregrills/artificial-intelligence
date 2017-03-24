@@ -140,6 +140,7 @@ class ID3 {
 		decisionTree = new TreeNode(null, 0);
 		growTree(decisionTree, data, checkList);;
 	} // train()
+
 	/**
 	 * Recursive method, takes an array of data and the current TreeNode 
 	 * Each call calculates the information gain from splitting
@@ -152,16 +153,12 @@ class ID3 {
 	 * on, a leaf has been reached - a TreeNode is created accordingly, and the 
 	 * method returns 
 	 **/
-	/**
-	 * TO DO: 
-	 * -work out exactly why the calcentropy/information gain blocks sometimes return NaN, 
-	 *  current solution is just a workaround
-	 * -potentially a couple blocks around so that the if-leaf conditional comes first
-	 **/
+
 	void growTree(TreeNode node, String[][] dataSet, String[] checkList) {
 		//start by calculating the entropy of the current subset
 		double totalEntropy = calcEntropy(dataSet);
-		//System.out.println("totalEntropy of this dataset is: "+totalEntropy);	
+		
+		//get all the variables I'll need set		
 		double[] potentialGain = new double[attributes];
 		double[] subSetEntropy;
 		double[] instanceCount;
@@ -180,18 +177,15 @@ class ID3 {
 				}
 			}
 			node.value = leafClass;
-			//System.out.println("leaf value is: "+strings[strings.length-1][node.value]);
 			return;
 		} else {	
 		//for each attribute not yet split on, calculate potential information gain
-			for (int i = 0; i < dataSet[0].length-1; i++) {//-1 to avoid testing class
-				//System.out.println("		Testing attribute: "+i+" which is: "+dataSet[0][i]);
+			for (int i = 0; i < dataSet[0].length-1; i++) {
 				if (checkList[i].equals(checked)) {
-					//System.out.println("			already checked attribute");
+					//ignore the attribute;
 					potentialGain[i] = 0;
 				} else {
 					//first nested for loop readies the arrays
-					//potentialGain[i] = 0;
 					instanceCount = new double[stringCount[i]];
 					subSetEntropy = new double[stringCount[i]];
 					for (int j = 0; j < stringCount[i]; j++) {
@@ -199,30 +193,29 @@ class ID3 {
 					//calculate entropy, get the number of instances of the subset
 						String[][] subSet = createSubset(dataSet, i, j);
 						subSetEntropy[j] = calcEntropy(subSet);
-				       		instanceCount[j] = attributeCounter(subSet, i, j);
+						instanceCount[j] = attributeCounter(subSet, i, j);
 					}
 					//second loop calculates information gain
 					potentialGain[i] = totalEntropy;
+					double tmp = 0;
 					for (int k = 0; k < subSetEntropy.length; k++) {	
-						potentialGain[i] -= (instanceCount[k]/rows*subSetEntropy[k]);
+						//remove this conditional if needs be
+						tmp = (instanceCount[k]/rows*subSetEntropy[k]);
+						if (!Double.isNaN(tmp)) {
+							potentialGain[i] -= tmp;						
+						}
 					}
-					//workaround for a current problem, ideally not permanent - hard to diagnose math error
-					if (Double.isNaN(potentialGain[i])) {
-						potentialGain[i] = 0;
-					}
-					potentialGain[i] = Math.abs(potentialGain[i]);
+					potentialGain[i] = Math.abs(potentialGain[i]);//an extra check to make sure there's no negatives
 					//if this is the highest gain so far, store the attribute index
 					if (potentialGain[i] >= comparator && !checkList[i].equals(checked)) {
 						comparator = potentialGain[i];
 						bestAttribute = i;
 					}
-					//System.out.println("			information gain of attribute "+dataSet[0][i]+" is: "+potentialGain[i]);
 	
 				}
 			}
 			//if it's not a leaf then split on the best attribute, create a treenode
 			//and make a call growTree again, passing each of those 
-			//System.out.println("THE BEST attribute to split on is: "+dataSet[0][bestAttribute]+" with an information gain of: "+potentialGain[bestAttribute]);
 			node.value = bestAttribute;
 			node.children = new TreeNode[stringCount[bestAttribute]];
 
@@ -232,10 +225,6 @@ class ID3 {
 				node.children[l] = new TreeNode(null, 0);
 				if (newSet.length != 1) {
 					subCheckList[bestAttribute] = checked;
-					//System.out.println("checkList is currently: "+Arrays.toString(checkList));
-					//System.out.println("Making recursive call "+l+" ouf of "+stringCount[bestAttribute]+
-								  // ", splitting on: "+dataSet[0][bestAttribute]+" = "+strings[bestAttribute][l]+
-								  // "\nThis produces the following array: \n"+Arrays.deepToString(newSet));
 					growTree(node.children[l], newSet, subCheckList);
 				
 				} else {
@@ -243,7 +232,6 @@ class ID3 {
 					//pass the dataset pre-split, but with all the attributes
 					//set to checked, to indicate that a leaf should be created
 					//based on the majority class of that set
-					//System.out.println("the subset split on attribute "+dataSet[0][bestAttribute]+" = "+strings[bestAttribute][l]+" contains no rows");
 					for (int m = 0; m < subCheckList.length-1; m++) {
 						subCheckList[m] = checked;
 					}
@@ -252,7 +240,7 @@ class ID3 {
 				
 			}
 		}
-	} // growTree
+	}//growTree
 
 	boolean isChecked(String[] headings) {
 		int counter = 0;
@@ -272,7 +260,6 @@ class ID3 {
 	 **/
 	String[][] createSubset(String[][] dataSet, int attr, int val) {
 		String value = strings[attr][val];
-		//System.out.println("			value is: "+strings[attr][val]);
 		int attCount = attributeCounter(dataSet, attr, val);
 		String[][] subSet = new String[attCount+1][dataSet[0].length-1];//THIS WAS -2 SHOULD IT BE???
 		int rowCount = 1;
@@ -301,18 +288,31 @@ class ID3 {
 		//loops through each class, checks number of instances of that class
 			classInstances[i] = attributeCounter(dataSet, attributes-1, i);
 		}
-		//this assumes minimum one class, and is essentially appending 
-		//chunks of math onto the single-class calculation
-		//below is a hardcoded version for testing datasets with only two classes
-		//double entropy = -xlogx(classInstances[0]/rows) -(xlogx(classInstances[1]/rows));
-		
+		/*
+		//used this very long-winded version over the slightly hacky one below
+		//mostly because it seems more correct because it avoids use of Math.abs() 
+		//to convert the -0.0 it sometimes returns
+		double[] divisions = new double[classInstances.length];
+		for (int j = 0; j < divisions.length; j++) {
+			divisions[j] = (classInstances[j]/rows);
+		}
+
+		double[] logging = new double[classInstances.length];
+		for (int k = 0; k < logging.length; k++) {
+			logging[k] = -xlogx(divisions[k]);
+		}
+		double entropy = 0;
+		for (int l = 0; l < logging.length; l++) {
+			if (logging[l] != 0.0) {
+				entropy += logging[l];
+			}
+		}
+		*/	
 		double entropy = -xlogx(classInstances[0]/rows);
 		for (int k = 1; k < classInstances.length; k++) {
 			entropy -= (xlogx(classInstances[k]/rows));
-		}
-		
-		//System.out.println(Math.abs(entropy));
-		//System.out.println(entropy);
+		}	
+		System.out.println(Math.abs(entropy));
 		return Math.abs(entropy);	
 	}// calcEntropy
 
