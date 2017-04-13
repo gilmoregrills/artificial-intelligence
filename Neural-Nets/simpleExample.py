@@ -5,17 +5,27 @@ def nonlin(x, deriv = False):
         return x * (1 - x)
     return 1 / (1 + np.exp(-x))
 
-inputs = np.array([  [0, 0],
-                    [0, 1],
-                    [1, 0],
-                    [1, 1]  ])
+inputs = np.array([  [0, 0, 1, 0],
+                    [0, 0, 1, 1],
+                    [1, 0, 1, 0],
+                    [2, 1, 1, 0],
+                    [2, 1, 0, 0],
+                    [2, 1, 0, 1],
+                    [1, 1, 0, 1],
+                    [0, 2, 1, 0],
+                    [0, 1, 0, 0],
+                    [2, 2, 0, 1],
+                    [1, 2, 1, 1],
+                    [1, 1, 0, 0],
+                    [2, 2, 1, 1],
+                    ])
 
-output = np.array( [[0, 1, 1, 0]]).T
+output = np.array( [[0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0]]).T
 
 np.random.seed(1)
 
-weights0 = 2*np.random.random((2, 4)) - 1
-weights1 = 2*np.random.random((4, 1)) - 1
+weights0 = 2*np.random.random((4, 14)) - 1
+weights1 = 2*np.random.random((14, 1)) - 1
 
 print "weights"
 print weights0
